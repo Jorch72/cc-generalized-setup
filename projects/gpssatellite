@@ -40,7 +40,7 @@ requirements = {
 			name = "cluster location",
 			["directly above"] = function()
 				local loc = requirements.locations.current
-				return vector.new(loc.x, 254, loc.z)
+				return location.new(loc.x, 254, loc.z, 1)
 			end,
 			["grid-aligned"] = function()
 				local towerTable = {}
@@ -94,7 +94,7 @@ requirements = {
 				end
 
 				if coords then
-					towerLoc = vector.new(coords[1], 254, coords[2])
+					towerLoc = location.new(coords[1], 254, coords[2], 1)
 				end
 
 				return towerLoc
@@ -108,3 +108,213 @@ requirements = {
 		return (math.abs(dist.x) + math.abs(dist.y) + math.abs(dist.z)) * 2 + 80
 	end,
 }
+
+instructions = function()
+	local startLoc = location.new(requirements.location.start.x, requirements.location.start.y, requirements.location.start.z, requirements.location.start.h)
+	local loc = location.new(startLoc.x, startLoc.y, startLoc.z, startLoc.h)
+	local tower = requirements.location.setup[requirements.location.selected]
+	local towerLoc = location.new(tower.x, tower.y, tower.z, tower.h)
+	local startupFile = [[while not turtle.detectDown() do
+	turtle.down()
+end
+
+if not os.getComputerLabel() then os.setComputerLabel("gpsSetup") end
+if fs.exists("/nsh") then
+	shell.run("nsh host rom/programs/shell beacon")
+else
+	shell.run("beacon")
+end
+]]
+
+	local beaconFile = [[local modem
+for _, side in pairs(rs.getSides()) do
+	if peripheral.getType(side) == "modem" then
+		modem = peripheral.wrap(side)
+		break
+	end
+end
+
+if modem then
+	while true do
+		modem.transmit(65532, os.getComputerID(), "beacon")
+		os.startTimer(1)
+		local event = {os.pullEvent()}
+		if event[1] == "char" and event[2] == "q" then
+			fs.delete("beacon")
+			fs.delete("startup")
+			return
+		end
+	end
+end
+]]
+
+	local diskStartup = [=[if turtle then
+	shell.run("/startup")
+else
+	if fs.exists("/disk/nsh") then
+		fs.copy("/disk/nsh", "/nsh")
+	end
+	if fs.exists("/disk/get") then
+		fs.copy("/disk/get", "/get")
+	end
+	if fs.exists("/disk/put") then
+		fs.copy("/disk/put", "/put")
+	end
+	fs.copy("/disk/gpsStart", "/gpsStart")
+	local file = io.open("/startup", "w")
+	if file then
+		if fs.exists("/nsh") then
+			file:write([[shell.run("nsh host /rom/programs/shell gpsStart")]].."\n")
+		else
+			file:write([[shell.run("gpsStart")]])
+			file:close()
+		end
+	end
+	if fs.exists("/disk/label") then
+		local file = io.open("/disk/label", "r")
+		if file then
+			os.setComputerLabel(file:read("*a"))
+			file:close()
+		end
+	end
+end
+]=]
+
+	local function writeLocalFiles()
+		local handle = io.open("startup", "w")
+		if handle then
+			handle:write(startupFile)
+			handle:close()
+		end
+		local handle = io.open("beacon", "w")
+		if handle then
+			handle:write(beaconFile)
+			handle:close()
+		end
+	end
+
+	local function writeDiskFiles()
+		local handle = io.open("disk/startup", "w")
+		if handle then
+			handle:write(diskStartup)
+			handle:close()
+		end
+		if not fs.exists("disk/nsh") and fs.exists("nsh") then fs.copy("nsh", "disk/nsh") end
+		if not fs.exists("disk/get") and fs.exists("get") then fs.copy("nsh", "disk/get") end
+		if not fs.exists("disk/put") and fs.exists("put") then fs.copy("nsh", "disk/put") end
+	end
+
+	local function moveTo (moveLoc, loc)
+		while loc.x ~= moveLoc.x or loc.z ~= moveLoc.z do
+			local moveX, moveZ
+			if math.abs(moveLoc.x - loc.x) > math.abs(moveLoc.z - loc.z) then
+				magnitude = math.abs(moveLoc.x - loc.x)
+				moveX = (moveLoc.x - loc.x) / math.abs(moveLoc.x - loc.x)
+				moveZ = 0
+			else
+				magnitude = math.abs(moveLoc.z - loc.z)
+				moveZ = (moveLoc.z - loc.z) / math.abs(moveLoc.z - loc.z)
+				moveX = 0
+			end
+			loc:setHeading(location.getOrientation(moveX, moveZ))
+			while magnitude > 0 do
+				if loc:forward() then
+					magnitude = magnitude - 1
+				else
+					loc:left()
+					loc:forward()
+					loc:right()
+				end
+			end
+		end
+		while loc.y ~= moveLoc.y do
+			deltaY = moveLoc.y - loc.y
+			if deltaY > 0 then
+				loc:up()
+			else
+				loc:down()
+			end
+		end
+		return loc:setHeading(moveLoc.h)
+	end
+
+	local function setupSatellite(satLoc, loc)
+		moveTo(satLoc, loc)
+		loc:back()
+		turtle.select(1)
+		turtle.place()
+		loc:down()
+		turtle.select(3)
+		turtle.place()
+		turtle.select(4)
+		turtle.drop()
+		local handle = io.open("disk/gpsStart", "w")
+		if handle then
+			handle:write('shell.run("gps", "host", '..satLoc.x..', '..satLoc.y..', '..satLoc.z..')')
+			handle:close()
+		end
+		local handle = io.open("/disk/label", "w")
+		if handle then
+			handle:write("gps"..satLoc.x..","..satLoc.z)
+			handle:close()
+		end
+		loc:up()
+		peripheral.call("front", "turnOn")
+		sleep(1)
+		id = peripheral.call("front", "getID")
+		loc:down()
+		turtle.select(4)
+		turtle.suck()
+		turtle.select(3)
+		turtle.dig()
+		loc:down()
+		loc:forward()
+		turtle.select(2)
+		turtle.placeUp()
+		loc:back()
+		loc:up()
+		loc:up()
+		peripheral.call("front", "reboot")
+		return id
+	end
+
+	local function buildCluster(clusterLoc)
+		local cLoc = location.new(clusterLoc.x, 254, clusterLoc.z, 2)
+		local wLoc = location.new(clusterLoc.x - 4, 253, clusterLoc.z, 1)
+		local nLoc = location.new(clusterLoc.x, 250, clusterLoc.z - 4, 2)
+		local eLoc = location.new(clusterLoc.x + 4, 253, clusterLoc.z, 3)
+		local sLoc = location.new(clusterLoc.x, 250, clusterLoc.z + 4, 4)
+		local idString
+		if turtle.getItemCount(1) >= 5 then
+			idString = setupSatellite(cLoc, loc)..","..setupSatellite(wLoc, loc)..","..setupSatellite(nLoc, loc)..","..setupSatellite(eLoc, loc)..","..setupSatellite(sLoc, loc)
+		else
+			idString = setupSatellite(wLoc, loc)..","..setupSatellite(nLoc, loc)..","..setupSatellite(eLoc, loc)..","..setupSatellite(sLoc, loc)
+		end
+		towerTable[cLoc.x..","..cLoc.z] = idString
+		local handle = io.open(".towers", "w")
+		if handle then
+			for coords, ids in pairs(towerTable) do
+				handle:write(coords..";"..ids.."\n")
+			end
+			handle:close()
+		end
+		moveTo(startLoc, loc)
+		term.setCursorPos(1, 1)
+		printCenter("Cluster Setup Complete")
+		term.setCursorPos(1, 2)
+	end
+
+	writeLocalFiles()
+	loc:up()
+	turtle.select(3)
+	turtle.placeDown()
+	turtle.select(4)
+	turtle.dropDown()
+	sleep(1)
+	writeDiskFiles()
+	turtle.suckDown()
+	turtle.select(3)
+	turtle.digDown()
+	term.clear()
+	buildCluster(towerLoc)
+end

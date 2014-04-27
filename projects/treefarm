@@ -60,3 +60,123 @@ requirements = {
 	},
 	fuel = 111,
 }
+
+instructions = function()
+	local function placeChestAndFurnace()
+		turtle.turnLeft()
+		turtle.select(3)
+		if turtle.detect() then turtle.dig() end
+		turtle.place()
+		turtle.turnRight()
+		turtle.turnRight()
+		turtle.up()
+		turtle.select(2)
+		if turtle.detect() then turtle.dig() end
+		turtle.place()
+		turtle.turnLeft()
+	end
+
+	local function layFences()
+		turtle.forward()
+		turtle.forward()
+		turtle.turnLeft()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.select(1)
+		for i = 1, 3 do
+			turtle.turnRight()
+			for i = 1, 13 do
+				if turtle.detectDown() then turtle.digDown() end
+				turtle.placeDown()
+				turtle.forward()
+			end
+		end
+		for i = 1, 4 do
+			if turtle.detectDown() then turtle.digDown() end
+			turtle.placeDown()
+			turtle.forward()
+		end
+		turtle.turnRight()
+		for i = 1, 9 do
+			if turtle.detectDown() then turtle.digDown() end
+			turtle.placeDown()
+			turtle.forward()
+		end
+	end
+
+	local function plantTrees()
+		turtle.forward()
+		turtle.turnRight()
+		for i = 1, 8 do
+			turtle.forward()
+		end
+		for i = 1, 4 do
+			for i = 1, 6 do
+				turtle.forward()
+			end
+			if turtle.detectDown() then turtle.digDown() end
+			turtle.down()
+			turtle.digDown()
+			turtle.select(4)
+			turtle.placeDown()
+			turtle.up()
+			turtle.select(5)
+			turtle.placeDown()
+			turtle.turnRight()
+		end
+		for i = 1, 6 do
+			turtle.back()
+		end
+	end
+
+	local function finalize()
+		--place marker torch
+		turtle.down()
+		turtle.digDown()
+		turtle.down()
+		turtle.digDown()
+		turtle.select(4)
+		turtle.placeDown()
+		turtle.up()
+		turtle.select(8)
+		turtle.placeDown()
+		turtle.up()
+		turtle.turnLeft()
+		turtle.forward()
+		--clear slots
+		turtle.select(1)
+		turtle.dropDown()
+		turtle.select(2)
+		turtle.dropDown()
+		turtle.select(16)
+		turtle.dropDown()
+		--move saplings to slot one
+		turtle.select(5)
+		turtle.transferTo(1)
+		--move logs to slot two
+		turtle.select(6)
+		turtle.transferTo(2)
+		--move charcoal to slot 16
+		turtle.select(7)
+		turtle.transferTo(16)
+		--drop extra stuff we may have dug.
+		for i = 3, 15 do
+			turtle.select(i)
+			turtle.dropDown()
+		end
+		turtle.back()
+		turtle.turnRight()
+	end
+
+	term.clear()
+	term.setCursorPos(1, 1)
+	print("Placing Chest and Furnace")
+	placeChestAndFurnace()
+	print("Laying Fences")
+	layFences()
+	print("Planting Saplings")
+	plantTrees()
+	print("Finalizing")
+	finalize()
+end
