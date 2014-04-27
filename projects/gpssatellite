@@ -1,5 +1,6 @@
+name = "GPS Satellite"
+
 requirements = {
-	name = "GPS Satellite",
 	slots = {
 		[1] = {
 			name = "computers",
@@ -31,9 +32,9 @@ requirements = {
 			exactCount = true,
 			readyFunction = nil,
 		},
-	}
+	},
 	locations = {
-		start = "current"
+		start = "current",
 		setup = {
 			[1] = "directly above",
 			[2] = "grid-aligned",
@@ -100,8 +101,9 @@ requirements = {
 				return towerLoc
 			end,
 		}
-	}
+	},
 	fuel = function()
+		do return 20 end
 		local start = requirements.location.start
 		local tower = requirements.location.setup[requirements.location.selected]
 		local dist = tower - start
