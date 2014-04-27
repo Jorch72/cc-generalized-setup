@@ -1,0 +1,62 @@
+requirements = {
+	name = "2x2 Tree Farm",
+	slots = {
+		[1] = {
+			name = "fences",
+			minCount = 52,
+			maxCount = 52,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "furnace"
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "chest"
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[4] = {
+			name = "dirt"
+			minCount = 5,
+			maxCount = 5,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[5] = {
+			name = "saplings"
+			minCount = 9,
+			maxCount = 9,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[6] = {
+			name = "log"
+			minCount = 1,
+			maxCount = 1,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[7] = {
+			name = "charcoal"
+			minCount = 2,
+			maxCount = 2,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[8] = {
+			name = "redstone torch"
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+	},
+	fuel = 111,
+}

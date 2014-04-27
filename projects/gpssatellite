@@ -1,0 +1,110 @@
+requirements = {
+	name = "GPS Satellite",
+	slots = {
+		[1] = {
+			name = "computers",
+			minCount = 4,
+			maxCount = 5,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "wireless modems",
+			minCount = 4,
+			maxCount = 5,
+			exactCount = false,
+			readyFunction = function()
+				return ((turtle.getItemCount(2) >= turtle.getItemCount(1) and turtle.getItemCount(2) >= 4) or turtle.getItemCount(2) >= 5)
+			end,
+		},
+		[3] = {
+			name = "disk drive",
+			minCount = 1,
+			maxCount = 1,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "floppy disk",
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+	}
+	locations = {
+		start = "current"
+		setup = {
+			[1] = "directly above",
+			[2] = "grid-aligned",
+			name = "cluster location",
+			["directly above"] = function()
+				local loc = requirements.locations.current
+				return vector.new(loc.x, 254, loc.z)
+			end,
+			["grid-aligned"] = function()
+				local towerTable = {}
+
+				if fs.exists(".towers") then
+					handle = io.open(".towers", "r")
+					if handle then
+						for line in handle:lines() do
+							local coords, ids = string.match(line, "(.-);(.*)")
+							towerTable[coords] = ids
+						end
+						handle:close()
+					end
+				end
+
+				local loc = requirements.locations.current
+
+				local minX = math.floor(loc.x / 372) * 372
+				local minZ = math.floor(loc.z / 372) * 372
+				local maxX = minX + 372
+				local maxZ = minZ + 372
+
+				--determine closest needed tower position
+				local neededTowers, distances = {}, {}
+				if not towerTable[minX..","..minZ] then
+					table.insert(neededTowers, {minX, minZ})
+					table.insert(distances, math.sqrt((loc.x - minX) ^ 2 + (loc.z - minZ) ^ 2))
+				end
+				if not towerTable[minX..","..maxZ] then
+					table.insert(neededTowers, {minX, maxZ})
+					table.insert(distances, math.sqrt((loc.x - minX) ^ 2 + (loc.z - maxZ) ^ 2))
+				end
+				if not towerTable[maxX..","..minZ] then
+					table.insert(neededTowers, {maxX, minZ})
+					table.insert(distances, math.sqrt((loc.x - maxX) ^ 2 + (loc.z - minZ) ^ 2))
+				end
+				if not towerTable[maxX..","..maxZ] then
+					table.insert(neededTowers, {maxX, maxZ})
+					table.insert(distances, math.sqrt((loc.x - maxX) ^ 2 + (loc.z - maxZ) ^ 2))
+				end
+
+				local distance = 9000
+				local coords
+				if #neededTowers > 0 then
+					for i=1, #neededTowers do
+						if distances[i] < distance then
+							distance = distances[i]
+							coords = neededTowers[i]
+						end
+					end
+				end
+
+				if coords then
+					towerLoc = vector.new(coords[1], 254, coords[2])
+				end
+
+				return towerLoc
+			end,
+		}
+	}
+	fuel = function()
+		local start = requirements.location.start
+		local tower = requirements.location.setup[requirements.location.selected]
+		local dist = tower - start
+		return (math.abs(dist.x) + math.abs(dist.y) + math.abs(dist.z)) * 2 + 80
+	end,
+}
