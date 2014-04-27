@@ -1,11 +1,16 @@
 local projectOffset = 1
+local project
+local display, handler
 
 local projects = {}
 
 if fs.exists("/projects") and fs.isDir("/projects") then
 	for _, name in pairs(fs.list("/projects")) do
 		local file = fs.combine("/projects", name)
+		local usefulEnv = {shell = shell}
+		setmetatable(usefulEnv, {__index = _G})
 		local env = {}
+		setmetatable(env, {__index = usefulEnv})
 		local fn, err = loadfile(file)
 		if fn then
 			setfenv(fn, env)
@@ -36,30 +41,77 @@ local function printCenter(text)
 	term.write(text)
 end
 
-local function displayProjects()
+local function isSlotReady(slot)
+	if project and project.requirements.slots then
+		local slotReq = project.requirements.slots[slot]
+		if slotReq.readyFunction then
+			return slotReq.readyFunction()
+		elseif slotReq.exactCount then
+			return slotReq.minCount == slotReq.maxCount and slotReq.minCount == turtle.getItemCount(slot)
+		else
+			return turtle.getItemCount(slot) >= slotReq.minCount
+		end
+	else
+		return false
+	end
+end
+
+local function areAllSlotsReady()
+	if project and project.requirements.slots then
+		for i = 1, #project.requirements.slots do
+			if not isSlotReady(i) then return false end
+		end
+		return true
+	else
+		return false
+	end
+end
+
+local function areLocationsReady()
+	return false
+end
+
+local function isFuelSufficient()
+	if project and project.requirements.fuel then
+		local fuelCost = project.requirements.fuel
+		if type(project.requirements.fuel) == "function" then
+			fuelCost = project.requirements.fuel()
+		end
+		return turtle.getFuelLevel() >= fuelCost
+	else
+		return false
+	end
+end
+
+local displayProjects, handleProjects, displayRequirements, handleRequirements, displaySlots, handleSlots, displayLocations, handleLocations
+
+function displayProjects()
 	local x, y = term.getSize()
 	local function projectLine(index)
-		term.setCursorPos(1, y)
 		if term.isColor() then
-			term.setBackgroundColor(y % 2 == 0 and colors.white or colors.lightGray)
+			term.setBackgroundColor(index % 2 == 0 and colors.white or colors.lightGray)
 			term.setTextColor(colors.black)
 		else
 			term.setBackgroundColor(colors.black)
 			term.setTextColor(colors.white)
 		end
 		term.clearLine()
+		local x, y = term.getCursorPos()
+		term.setCursorPos(2, y)
 		term.write(projects[sortedProjects[index]].name)
 	end
-	term.setBackgroundColor(colors.black)
+	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
 	term.setTextColor(colors.white)
+	term.clear()
 	term.setCursorPos(1, 1)
 	printCenter("Project List")
-	for i = 1, math.min(#sortedPlaces, y - 2) do
+	for i = 1, math.min(#sortedProjects, y - 2) do
+		term.setCursorPos(1, i + 2)
 		projectLine(projectOffset + i - 1)
 	end
 end
 
-local function handleProjects(event)
+function handleProjects(event)
 	if event[1] == "mouse_click" then
 		local x, y = term.getSize()
 		if event[4] >= 3 and event[4] <= y then
@@ -80,6 +132,9 @@ local function handleProjects(event)
 				--clicked on a place!
 				local index = projectOffset + event[4] - 3
 				if index <= #places then
+					project = projects[sortedProjects[index]]
+					display = displayRequirements
+					handler = handleRequirements
 					--we have a project selected, use projects[sortedProjects[index]] to access.
 				end			
 			end
@@ -87,4 +142,61 @@ local function handleProjects(event)
 	end
 end
 
-displayProjects()
+function displayRequirements()
+	local function setColors(bool)
+		if term.isColor() then
+			term.setBackgroundColor(bool and colors.green or colors.red)
+			term.setTextColor(colors.white)
+		else
+			term.setBackgroundColor(bool and colors.black or colors.white)
+			term.setTextColor(bool and colors.white or colors.black)
+		end
+	end
+	local x, y = term.getSize()
+	term.setCursorPos(1, 1)
+	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+	term.setTextColor(colors.white)
+	term.clear()
+	printCenter(project.name.." - Requirements")
+	do
+		term.setCursorPos(4, 4)
+		setColors(areAllSlotsReady())
+		term.write(" SLOTS ")
+		if project.requirements.locations then
+			term.setCursorPos(14, 4)
+			setColors(areLocationsReady())
+			term.write(" LOCATIONS ")
+		end
+		if project.requirements.fuel then
+			term.setCursorPos(28, 4)
+			setColors(isFuelSufficient())
+			term.write(" FUELING ")
+		end
+	end
+	if false then
+		if project.requirements.fuel then
+			term.setCursorPos(2, 6)
+			local fuelCost = projects.requirements.fuel
+			if type(project.requirements.fuel) == "function" then
+				fuelCost = projects.requirements.fuel()
+			end
+			local fuel = turtle.getFuelLevel()
+			term.setCursorPos(2, 9)
+			term.write("Fuel ")
+			term.setTextColor(colors.lightGray)
+			term.write("(Refuel)")
+			term.setTextColor(colors.white)
+			term.setCursorPos(2, 10)
+			term.write("Available: ")
+			term.setTextColor(fuel >= fuelRequired and colors.lime or colors.red)
+			term.write(tostring(fuel))
+			term.setTextColor(colors.white)
+			term.setCursorPos(2, 11)
+			term.write("Required: "..fuelRequired)
+		end
+	end
+end
+
+project = projects.gpssatellite
+
+displayRequirements()
