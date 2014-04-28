@@ -3,14 +3,14 @@ name = "GPS Satellite"
 requirements = {
 	slots = {
 		[1] = {
-			name = "computers",
+			name = "Computers",
 			minCount = 4,
 			maxCount = 5,
 			exactCount = false,
 			readyFunction = nil,
 		},
 		[2] = {
-			name = "wireless modems",
+			name = "Modems",
 			minCount = 4,
 			maxCount = 5,
 			exactCount = false,
@@ -19,14 +19,14 @@ requirements = {
 			end,
 		},
 		[3] = {
-			name = "disk drive",
+			name = "Disk Drive",
 			minCount = 1,
 			maxCount = 1,
 			exactCount = false,
 			readyFunction = nil,
 		},
-		[3] = {
-			name = "floppy disk",
+		[4] = {
+			name = "Disk",
 			minCount = 1,
 			maxCount = 1,
 			exactCount = true,
