@@ -83,7 +83,7 @@ local function isFuelSufficient()
 	end
 end
 
-local displayProjects, handleProjects, displayRequirements, handleRequirements, displaySlots, handleSlots, displayLocations, handleLocations
+local displayProjects, handleProjects, displayRequirements, handleRequirements, displaySlots, handleSlots, displayLocations, handleLocations, displayFueling, handleFueling
 
 function displayProjects()
 	local x, y = term.getSize()
@@ -142,7 +142,7 @@ function handleProjects(event)
 	end
 end
 
-function displayRequirements()
+local function drawRequirementsHeader()
 	local function setColors(bool)
 		if term.isColor() then
 			term.setBackgroundColor(bool and colors.green or colors.red)
@@ -159,44 +159,117 @@ function displayRequirements()
 	term.clear()
 	printCenter(project.name.." - Requirements")
 	do
-		term.setCursorPos(4, 4)
-		setColors(areAllSlotsReady())
-		term.write(" SLOTS ")
+		if project.requirements.slots then
+			term.setCursorPos(4, 3)
+			setColors(areAllSlotsReady())
+			term.write(" SLOTS ")
+		end
 		if project.requirements.locations then
-			term.setCursorPos(14, 4)
+			term.setCursorPos(14, 3)
 			setColors(areLocationsReady())
 			term.write(" LOCATIONS ")
 		end
 		if project.requirements.fuel then
-			term.setCursorPos(28, 4)
+			term.setCursorPos(28, 3)
 			setColors(isFuelSufficient())
 			term.write(" FUELING ")
 		end
 	end
-	if false then
-		if project.requirements.fuel then
-			term.setCursorPos(2, 6)
-			local fuelCost = projects.requirements.fuel
-			if type(project.requirements.fuel) == "function" then
-				fuelCost = projects.requirements.fuel()
-			end
-			local fuel = turtle.getFuelLevel()
-			term.setCursorPos(2, 9)
-			term.write("Fuel ")
-			term.setTextColor(colors.lightGray)
-			term.write("(Refuel)")
-			term.setTextColor(colors.white)
-			term.setCursorPos(2, 10)
-			term.write("Available: ")
-			term.setTextColor(fuel >= fuelRequired and colors.lime or colors.red)
-			term.write(tostring(fuel))
-			term.setTextColor(colors.white)
-			term.setCursorPos(2, 11)
-			term.write("Required: "..fuelRequired)
+end
+
+function displayRequirements()
+	drawRequirementsHeader()
+end
+
+function displaySlots()
+	drawRequirementsHeader()
+	local function setColors(bool)
+		if term.isColor() then
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(bool and colors.lime or colors.red)
+		else
+			term.setBackgroundColor(bool and colors.black or colors.white)
+			term.setTextColor(bool and colors.white or colors.black)
 		end
+	end
+	local x, y = term.getSize()
+	term.setCursorPos(1, 1)
+	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	printCenter(project.name.." - Slots")
+	do
+		for i = 1, #project.requirements.slots do
+			local slot = project.requirements.slots[i]
+			if i > 8 then
+				term.setCursorPos(math.ceil(x / 2), i - 4)
+			else
+				term.setCursorPos(2, i + 4)
+			end
+			term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+			term.setTextColor(colors.white)
+			term.write(i..": ")
+			setColors(isSlotReady(i))
+			if slot.minCount == slot.maxCount then
+				term.write(tostring(slot.minCount).." "..slot.name)
+			else
+				term.write(tostring(slot.minCount).."-"..tostring(slot.maxCount).." "..slot.name)
+			end
+		end
+	end
+end
+
+function displayFueling()
+	drawRequirementsHeader()
+	local function setColors(bool)
+		if term.isColor() then
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(bool and colors.lime or colors.red)
+		else
+			term.setBackgroundColor(bool and colors.black or colors.white)
+			term.setTextColor(bool and colors.white or colors.black)
+		end
+	end
+	local x, y = term.getSize()
+	term.setCursorPos(1, 1)
+	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	printCenter(project.name.." - Fueling")
+	do
+		local fuelCost = project.requirements.fuel
+		if type(project.requirements.fuel) == "function" then
+			fuelCost = project.requirements.fuel()
+		end
+		local fuel = turtle.getFuelLevel()
+		term.setCursorPos(2, 5)
+		term.write("Fuel ")
+		if #project.requirements.slots < 16 then
+			if term.isColor() then
+				term.setTextColor(colors.lightGray)
+				term.write("(Refuel)")
+			else
+				term.write("(")
+				term.setBackgroundColor(colors.white)
+				term.setTextColor(colors.black)
+				term.write("R")
+				term.setBackgroundColor(colors.black)
+				term.setTextColor(colors.white)
+				term.write("efuel)")
+			end
+		end
+		term.setTextColor(colors.white)
+		term.setCursorPos(2, 6)
+		term.write("Available: ")
+		setColors(fuel >= fuelCost)
+		term.write(tostring(fuel))
+		term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+		term.setTextColor(colors.white)
+		term.setCursorPos(2, 7)
+		term.write("Required: "..fuelCost)
 	end
 end
 
 project = projects.gpssatellite
 
-displayRequirements()
+displayFueling()
