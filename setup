@@ -1,6 +1,7 @@
 local projectOffset = 1
-local project
+local project, loc, buildLoc
 local display, handler
+local headingNames = {"West", "North", "East", "South"}
 
 local projects = {}
 
@@ -219,6 +220,69 @@ function displaySlots()
 	end
 end
 
+function displayLocations()
+	drawRequirementsHeader()
+	local x, y = term.getSize()
+	term.setCursorPos(1, 1)
+	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	printCenter(project.name.." - Locations")
+	do
+		term.setCursorPos(2, 5)
+		term.write("Current Position")
+		term.setCursorPos(2, 6)
+		term.write("X: ")
+		if loc and loc.x then
+			term.write(tostring(loc.x))
+		end
+		term.setCursorPos(2, 7)
+		term.write("Y: ")
+		if loc and loc.y then
+			term.write(tostring(loc.y))
+		end
+		term.setCursorPos(2, 8)
+		term.write("Z: ")
+		if loc and loc.z then
+			term.write(tostring(loc.z))
+		end
+		term.setCursorPos(2, 9)
+		term.write("Facing: ")
+		if loc and loc.h and headingNames[loc.h] then
+			term.write(headingNames[loc.h])
+		end
+	end
+	do
+		local column = math.ceil(x / 2)
+		term.setCursorPos(column, 5)
+		term.write("Build Position")
+		term.setCursorPos(column, 6)
+		term.write("X: ")
+		if buildLoc and buildLoc.x then
+			term.write(tostring(buildLoc.x))
+		end
+		term.setCursorPos(column, 7)
+		term.write("Y: ")
+		if buildLoc and buildLoc.y then
+			term.write(tostring(buildLoc.y))
+		end
+		term.setCursorPos(column, 8)
+		term.write("Z: ")
+		if buildLoc and buildLoc.z then
+			term.write(tostring(buildLoc.z))
+		end
+		term.setCursorPos(column, 9)
+		term.write("Facing: ")
+		if buildLoc and buildLoc.h and headingNames[buildLoc.h] then
+			term.write(headingNames[buildLoc.h])
+		end
+		if project.requirements.locations.setup and #project.requirements.locations.setup > 1 then
+			term.setCursorPos((x - column - 9) / 2 + column, 11)
+			term.write("(Options)")
+		end
+	end
+end
+
 function displayFueling()
 	drawRequirementsHeader()
 	local function setColors(bool)
@@ -272,4 +336,4 @@ end
 
 project = projects.gpssatellite
 
-displayFueling()
+displayLocations()
