@@ -69,7 +69,16 @@ local function areAllSlotsReady()
 end
 
 local function areLocationsReady()
-	return false
+	if project and projects.requirements.locations then
+		local startLoc, endLoc
+		if loc and loc.x and loc.y and loc.z and loc.y > 0 and buildLoc and buildLoc.x and buildLoc.y and buildLoc.z and buildLoc.y > 0 then
+			return true
+		else
+			return false
+		end
+	else
+		return true
+	end
 end
 
 local function isFuelSufficient()
