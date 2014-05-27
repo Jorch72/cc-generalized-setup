@@ -391,4 +391,22 @@ end
 
 project = projects.gpssatellite
 
+do
+	local gpsVec = vector.new(gps.locate(0.5))
+	if gpsVec.y > 0 then
+		--if gps is already available, use those coordinates.
+		loc = location.new(gpsVec.x, gpsVec.y, gpsVec.z, 0)
+		startLoc = location.new(gpsVec.x, gpsVec.y, gpsVec.z, 0)
+		if turtle.forward() then
+			local secLoc = vector.new(gps.locate())
+			local head = secLoc - gpsVec
+			loc.h = location.getOrientation(head.x, head.z)
+			startLoc.h = loc.h
+			if not turtle.back() then
+				loc.x, loc.y, loc.z, startLoc.x, startLoc.y, startLoc.z = secLoc.x, secLoc.y, secLoc.z, secLoc.x, secLoc.y, secLoc.z
+			end
+		end
+	end
+end
+
 displayLocations()
