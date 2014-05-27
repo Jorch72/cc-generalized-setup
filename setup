@@ -261,6 +261,8 @@ function handleSlots(event)
 	end
 end
 
+local editingTable, editingKey, editingCursorPos
+
 function displayLocations()
 	drawRequirementsHeader()
 	local x, y = term.getSize()
@@ -320,6 +322,84 @@ function displayLocations()
 		if project.requirements.locations.setup and #project.requirements.locations.setup > 1 then
 			term.setCursorPos((x - column - 9) / 2 + column, 11)
 			term.write("(Options)")
+		end
+	end
+end
+
+local function numericRead(event)
+	local function set(str)
+		if tonumber(str) then
+			editingTable[editingKey] = tonumber(str)
+		end
+	end
+
+	local str = tostring(editingTable[editingKey])
+	if event[1] == "char" then
+		if tonumber(event[2]) == event[2] then
+			str = string.sub(str, 1, editingCursorPos - 1)..event[2]..string.sub(str, editingCursorPos)
+			set(str)
+		elseif event[2] == "-" then
+			editingTable[editingKey] = editingTable[editingKey] * -1
+		end
+	elseif event[1] == "key" then
+		if event[2] == 28 then
+			editingTable = nil
+			editingKey = nil
+			editingCursorPos = nil
+		elseif event[2] == 14 then
+			--backspace
+			str = string.sub(str, 1, editingCursorPos - 2)..string.sub(str, editingCursorPos)
+			set(str)
+		elseif event[2] == 211 then
+			--delete
+			str = string.sub(str, 1, editingCursorPos - 1)..string.sub(str, editingCursorPos + 1)
+			set(str)
+		elseif event[2] == 203 then
+			--left
+			editingCursorPos = math.max(editingCursorPos - 1, 1)
+		elseif event[2] == 205 then
+			--right
+			editingCursorPos = math.min(editingCursorPos + 1, #str + 1)
+		elseif event[2] == 199 then
+			--home
+			editingCursorPos = 1
+		elseif event[2] == 207 then
+			--end
+			editingCursorPos = #str + 1
+		end
+	end
+end
+
+function handleLocations(event)
+	local x, y = term.getSize()
+	local column = math.ceil(x / 2)
+	if event[1] == "mouse_click" then
+		if event[4] <= 4 then
+			return handleRequirementsHeader(event)
+		elseif event[4] >= 6 and event[4] <= 8 then
+			--clicked on one of the six xyz position entries.
+			if event[3] >= 2 and event[3] <= column - 2 then
+				editingTable = loc
+			elseif event[3] >= column and event[3] <= x - 1 then
+				editingTable = buildLoc
+			end
+			local keyLookup = {[6] = "x", [7] = "y", [8] = "z"}
+			editingKey = keyLookup[event[4]]
+			editingCursorPos = string.len(tostring(editingTable[editingKey])) + 1
+		elseif event[4] == 9 then
+			if event[3] >= 2 and <= column - 2 then
+				--adjust start position facing
+				loc.h = loc.h + 1
+				if loc.h == 5 then loc.h = 1 end
+			elseif event[3] >= column and event[3] <= x - 1 then
+				--adjust build position facing
+				buildLoc.h = buildLoc.h + 1
+				if buildLoc.h == 5 then buildLoc.h = 1 end
+			end
+		end
+	elseif event[1] == "char" or event[1] == "key" then
+		if editingTable and editingKey and editingCursorPos then
+			numericRead(event)
 		end
 	end
 end
