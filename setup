@@ -187,8 +187,32 @@ local function drawRequirementsHeader()
 	end
 end
 
+local function handleRequirementsHeader(event)
+	if event[1] == "mouse_click" and event[2] == 1 then
+		if event[4] == 3 then
+			if event[3] >= 4 and event[3] <= 10 then
+				--clicked Slots
+				display = displaySlots
+				handler = handleSlots
+			elseif event[3] >= 14 and event[3] <= 24 then
+				--clicked Locations
+				display = displayLocations
+				handler = handleLocations
+			elseif event[3] >= 28 and event[3] <= 36 then
+				--clicked Fueling
+				display = displayFueling
+				handler = handleFueling
+			end
+		end
+	end
+end
+
 function displayRequirements()
 	drawRequirementsHeader()
+end
+
+function handleRequirements(event)
+	handleRequirementsHeader(event)
 end
 
 function displaySlots()
@@ -225,6 +249,14 @@ function displaySlots()
 			else
 				term.write(tostring(slot.minCount).."-"..tostring(slot.maxCount).." "..slot.name)
 			end
+		end
+	end
+end
+
+function handleSlots(event)
+	if event[1] == "mouse_click" then
+		if event[4] <= 4 then
+			return handleRequirementsHeader(event)
 		end
 	end
 end
@@ -340,6 +372,20 @@ function displayFueling()
 		term.setTextColor(colors.white)
 		term.setCursorPos(2, 7)
 		term.write("Required: "..fuelCost)
+	end
+end
+
+function handleFueling(event)
+	if event[1] == "mouse_click" then
+		if event[4] <= 4 then
+			return handleRequirementsHeader(event)
+		elseif event[4] == 5 and event[3] >= 10 and event[3] <= 17 then
+			--clicked Refuel
+			for i = #project.requirements.slots + 1, 16 do
+				turtle.select(i)
+				turtle.refuel(64)
+			end
+		end
 	end
 end
 
