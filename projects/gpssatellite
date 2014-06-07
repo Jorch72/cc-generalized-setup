@@ -112,9 +112,9 @@ requirements = {
 }
 
 instructions = function()
-	local startLoc = location.new(requirements.location.start.x, requirements.location.start.y, requirements.location.start.z, requirements.location.start.h)
+	local startLoc = location.new(requirements.locations.start.x, requirements.locations.start.y, requirements.locations.start.z, requirements.locations.start.h)
 	local loc = location.new(startLoc.x, startLoc.y, startLoc.z, startLoc.h)
-	local tower = requirements.location.setup[requirements.location.selected]
+	local tower = requirements.locations.setup
 	local towerLoc = location.new(tower.x, tower.y, tower.z, tower.h)
 	local startupFile = [[while not turtle.detectDown() do
 	turtle.down()
@@ -278,6 +278,19 @@ end
 		loc:up()
 		peripheral.call("front", "reboot")
 		return id
+	end
+
+	local towerTable = {}
+
+	if fs.exists(".towers") then
+		handle = io.open(".towers", "r")
+		if handle then
+			for line in handle:lines() do
+				local coords, ids = string.match(line, "(.-);(.*)")
+				towerTable[coords] = ids
+			end
+			handle:close()
+		end
 	end
 
 	local function buildCluster(clusterLoc)
