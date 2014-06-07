@@ -207,8 +207,7 @@ local function areAllSlotsReady()
 end
 
 local function areLocationsReady()
-	if project and projects.requirements.locations then
-		local startLoc, endLoc
+	if project and project.requirements.locations then
 		if loc and loc.x and loc.y and loc.z and loc.y > 0 and buildLoc and buildLoc.x and buildLoc.y and buildLoc.z and buildLoc.y > 0 then
 			return true
 		else
@@ -229,6 +228,10 @@ local function isFuelSufficient()
 	else
 		return false
 	end
+end
+
+local function isReady()
+	return project and areAllSlotsReady() and areLocationsReady() and isFuelSufficient()
 end
 
 local displayProjects, handleProjects, displayRequirements, handleRequirements, displaySlots, handleSlots, displayLocations, handleLocations, displayFueling, handleFueling
@@ -272,14 +275,14 @@ function handleProjects(event)
 						projectOffset = projectOffset - 1
 					end
 				elseif event[4] == y then
-					if projectOffset + y - 3 < #places then
+					if projectOffset + y - 3 < #sortedProjects then
 						projectOffset = projectOffset + 1
 					end
 				end
 			else
 				--clicked on a place!
 				local index = projectOffset + event[4] - 3
-				if index <= #places then
+				if index <= #sortedProjects then
 					project = projects[sortedProjects[index]]
 					display = displayRequirements
 					handler = handleRequirements
@@ -478,6 +481,7 @@ end
 
 local function numericRead(event)
 	local function set(str)
+		if #str == 0 then str = "0" end
 		if tonumber(str) then
 			editingTable[editingKey] = tonumber(str)
 		end
@@ -485,11 +489,15 @@ local function numericRead(event)
 
 	local str = tostring(editingTable[editingKey])
 	if event[1] == "char" then
-		if tonumber(event[2]) == event[2] then
+		if event[2] == "-" then
+			editingTable[editingKey] = editingTable[editingKey] * -1
+		elseif tonumber(event[2]) ~= nil then
+			local length = #str
 			str = string.sub(str, 1, editingCursorPos - 1)..event[2]..string.sub(str, editingCursorPos)
 			set(str)
-		elseif event[2] == "-" then
-			editingTable[editingKey] = editingTable[editingKey] * -1
+			if #str > length then
+				editingCursorPos = editingCursorPos + 1
+			end
 		end
 	elseif event[1] == "key" then
 		if event[2] == 28 then
@@ -498,7 +506,11 @@ local function numericRead(event)
 			editingCursorPos = nil
 		elseif event[2] == 14 then
 			--backspace
+			local length = #str
 			str = string.sub(str, 1, editingCursorPos - 2)..string.sub(str, editingCursorPos)
+			if length < #str then
+				editingCursorPos = math.max(editingCursorPos - 1, 1)
+			end
 			set(str)
 		elseif event[2] == 211 then
 			--delete
@@ -624,16 +636,17 @@ do
 	if gpsVec.y > 0 then
 		--if gps is already available, use those coordinates.
 		loc = location.new(gpsVec.x, gpsVec.y, gpsVec.z, 0)
-		startLoc = location.new(gpsVec.x, gpsVec.y, gpsVec.z, 0)
 		if turtle.forward() then
 			local secLoc = vector.new(gps.locate())
 			local head = secLoc - gpsVec
 			loc.h = location.getOrientation(head.x, head.z)
-			startLoc.h = loc.h
 			if not turtle.back() then
-				loc.x, loc.y, loc.z, startLoc.x, startLoc.y, startLoc.z = secLoc.x, secLoc.y, secLoc.z, secLoc.x, secLoc.y, secLoc.z
+				loc.x, loc.y, loc.z = secLoc.x, secLoc.y, secLoc.z
 			end
 		end
+	else
+		loc = location.new(0, 0, 0, 0)
+		buildLoc = location.new(0, 0, 0, 0)
 	end
 end
 
@@ -641,8 +654,34 @@ display = displayProjects
 handler = handleProjects
 
 while not beginProject do
-	term.setBackgroundColor(colors.lightGray)
-	term.clear()
 	display()
-	handler({os.pullEvent()})
+	if isReady() then
+		local xCur, yCur = term.getCursorPos()
+		local x, y = term.getSize()
+		term.setCursorPos(1, y)
+		term.setBackgroundColor(term.isColor() and colors.green or colors.black)
+		term.setTextColor(colors.white)
+		printCenter(" GO ")
+		term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+		term.setCursorPos(xCur, yCur)
+	end
+	local event = {os.pullEvent()}
+	if event[1] == "mouse_click" and isReady() then
+		local x, y = term.getSize()
+		if event[4] == y then
+			local start = (x - 4) / 2 + 1
+			if event[3] >= start and event[3] <= start + 3 then
+				beginProject = true
+			else
+				handler(event)
+			end
+		else
+			handler(event)
+		end
+	else
+		handler(event)
+	end
 end
+
+setfenv(project.instructions, setmetatable({shell = shell, location = location, requirements = project.requirements}, {__index = _G}))
+project.instructions()
