@@ -683,5 +683,6 @@ while not beginProject do
 	end
 end
 
-setfenv(project.instructions, setmetatable({shell = shell, location = location, requirements = project.requirements}, {__index = _G}))
+local requirements = project.requirements
+
 project.instructions()
