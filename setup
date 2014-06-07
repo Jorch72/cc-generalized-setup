@@ -37,7 +37,7 @@ table.sort(sortedProjects)
 
 local headingNames = {"West", "North", "East", "South"}
 
-local location = {}
+location = {}
 local Location = {
 	add = function(self, o)
 		return vector.new(
@@ -683,6 +683,10 @@ while not beginProject do
 	end
 end
 
-local requirements = project.requirements
+requirements = project.requirements
+if requirements.locations then
+	requirements.locations.start = loc
+	requirements.locations.setup = buildLoc
+end
 
 project.instructions()
