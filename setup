@@ -1,6 +1,7 @@
 local projectOffset = 1
 local project, loc, buildLoc
 local display, handler
+local beginProject = false
 local headingNames = {"West", "North", "East", "South"}
 
 local projects = {}
@@ -266,6 +267,7 @@ local editingTable, editingKey, editingCursorPos
 function displayLocations()
 	drawRequirementsHeader()
 	local x, y = term.getSize()
+	local column = math.ceil(x / 2)
 	term.setCursorPos(1, 1)
 	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
 	term.setTextColor(colors.white)
@@ -296,7 +298,6 @@ function displayLocations()
 		end
 	end
 	do
-		local column = math.ceil(x / 2)
 		term.setCursorPos(column, 5)
 		term.write("Build Position")
 		term.setCursorPos(column, 6)
@@ -322,6 +323,18 @@ function displayLocations()
 		if project.requirements.locations.setup and #project.requirements.locations.setup > 1 then
 			term.setCursorPos((x - column - 9) / 2 + column, 11)
 			term.write("(Options)")
+		end
+	end
+	do
+		if editingTable and editingKey and editingCursorPos then
+			local columns = {[loc] = 2, [buildLoc] = column}
+			local lines = {x = 6, y = 7, z = 8}
+			term.setCursorPos(columns[editingTable] + 3, lines[editingKey])
+			term.write(tostring(editingTable[editingKey]))
+			term.setCursorPos(columns[editingTable] + 2 + editingCursorPos, lines[editingKey])
+			term.setCursorBlink(true)
+		else
+			term.setCursorBlink(false)
 		end
 	end
 end
@@ -387,7 +400,7 @@ function handleLocations(event)
 			editingKey = keyLookup[event[4]]
 			editingCursorPos = string.len(tostring(editingTable[editingKey])) + 1
 		elseif event[4] == 9 then
-			if event[3] >= 2 and <= column - 2 then
+			if event[3] >= 2 and event[3] <= column - 2 then
 				--adjust start position facing
 				loc.h = loc.h + 1
 				if loc.h == 5 then loc.h = 1 end
@@ -469,8 +482,6 @@ function handleFueling(event)
 	end
 end
 
-project = projects.gpssatellite
-
 do
 	local gpsVec = vector.new(gps.locate(0.5))
 	if gpsVec.y > 0 then
@@ -489,4 +500,12 @@ do
 	end
 end
 
-displayLocations()
+display = displayProjects
+handler = handleProjects
+
+while not beginProject do
+	term.setBackgroundColor(colors.lightGray)
+	term.clear()
+	display()
+	handler({os.pullEvent()})
+end
