@@ -1,0 +1,405 @@
+name = "13m Diameter Dome"
+
+requirements = {
+	slots = {
+		[1] = {
+			name = "Wall Bricks",
+			minCount = 36,
+			maxCount = 36,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "Glass",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "Glass",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[4] = {
+			name = "Glass",
+			minCount = 61,
+			maxCount = 61,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[5] = {
+			name = "Floor Edge Bricks",
+			minCount = 40,
+			maxCount = 40,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[6] = {
+			name = "Floor",
+			minCount = 57,
+			maxCount = 57,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[7] = {
+			name = "Lights",
+			minCount = 4,
+			maxCount = 4,
+			exactCount = true,
+			readyFunction = nil,
+		},
+	},
+	fuel = 374,
+}
+
+instructions = function()
+	local function up()
+		while not turtle.up() do
+			turtle.digUp()
+			sleep(0.6)
+		end
+	end
+	local function down()
+		if not turtle.down() then
+			turtle.digDown()
+			turtle.down()
+		end
+	end
+	local function forward()
+		while not turtle.forward() do
+			turtle.dig()
+			sleep(0.6)
+		end
+	end
+	local function back()
+		while not turtle.back() then
+			turtle.turnLeft()
+			turtle.turnLeft()
+			while turtle.detect() do
+				turtle.dig()
+				sleep(0.6)
+			end
+			turtle.turnRight()
+			turtle.turnRight()
+		end
+	end
+	local function placeUp()
+		while not turtle.placeUp() do
+			turtle.digUp()
+			sleep(0.6)
+		end
+	end
+	local function place()
+		while not turtle.place() do
+			turtle.dig()
+			sleep(0.6)
+		end
+	end
+	local function placeDown()
+		if not turtle.placeDown() then
+			if not turtle.compareDown() then
+				--catches the corner ones for floor setting
+				turtle.digDown()
+				turtle.placeDown()
+			end
+		end
+	end
+
+	do
+		for i = 1, 6 do
+			up()
+		end
+		turtle.select(4)
+		for i = 1, 4 do
+			place()
+			turtle.turnLeft()
+		end
+		down()
+		placeUp()
+		forward()
+		forward()
+		turtle.turnLeft()
+		for i = 1, 4 do
+			placeUp()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+			placeUp()
+			turtle.turnRight()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+		end
+	end
+	do
+		down()
+		forward()
+		forward()
+		turtle.turnRight()
+		forward()
+		turtle.turnRight()
+
+		for i = 1, 4 do
+			forward()
+			placeUp()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+			up()
+			turtle.turnLeft()
+			place()
+			turtle.turnRight()
+			turtle.turnRight()
+			place()
+			down()
+			placeUp()
+			forward()
+			turtle.turnRight()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			--end six block, start middle bit
+			forward()
+			placeUp()
+			turtle.turnRight()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+			placeUp()
+			turtle.turnRight()
+		end
+	end
+	turtle.select(3)
+	do
+		down()
+		turtle.turnLeft()
+		forward()
+		turtle.turnLeft()
+		for i = 1, 4 do
+			placeUp()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+			placeUp()
+			turtle.turnRight()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+			placeUp()
+			--end five corner, move to three side
+			forward()
+			turtle.turnRight()
+			forward()
+			turtle.turnLeft()
+			--begin three side
+			placeUp()
+			forward()
+			placeUp()
+			forward()
+			placeUp()
+			--end three side, move to five corner
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+		end
+	end
+	do
+		down()
+		forward()
+		for i = 1, 4 do
+			placeUp()
+			forward()
+			placeUp()
+			turtle.turnLeft()
+			forward()
+			placeUp()
+			--end three corner, move to five side
+			forward()
+			turtle.turnRight()
+			forward()
+			turtle.turnLeft()
+			--begin five side
+			for i = 1, 4 do
+				placeUp()
+				forward()
+			end
+			placeUp()
+			--end five side, move to three corner
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+		end
+	end
+	turtle.select(2)
+	do
+		down()
+		forward()
+		for i = 1, 4 do
+			placeUp()
+			--move to next piece
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+			--start next piece
+			turtle.turnLeft()
+			placeUp()
+			forward()
+			placeUp()
+			--move to side
+			forward()
+			turtle.turnRight()
+			forward()
+			turtle.turnLeft()
+			--three side
+			placeUp()
+			forward()
+			placeUp()
+			forward()
+			placeUp()
+			--move to begin corner sweep
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+			--first part of corner
+			placeUp()
+			forward()
+			placeUp()
+			--move to start next loop
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+		end
+	end
+	turtle.select(4)
+	turtle.transferTo(2)
+	turtle.select(2)
+	do
+		--final, bottom glass layer
+		down()
+		forward()
+		for i = 1, 4 do
+			turtle.turnLeft()
+			placeUp()
+			forward()
+			placeUp()
+			--move to side
+			forward()
+			turtle.turnRight()
+			forward()
+			turtle.turnLeft()
+			--do side
+			for i = 1, 4 do
+				placeUp()
+				forward()
+			end
+			placeUp()
+			--move to first corner
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+			--do corner
+			placeUp()
+			forward()
+			placeUp()
+			--move to next corner to loop
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+			forward()
+		end
+	end
+	do
+		local function slideLeft()
+			turtle.turnLeft()
+			forward()
+			turtle.turnRight()
+		end
+		local function placeWallAndFloor()
+			turtle.select(1)
+			place()
+			turtle.select(5)
+			placeDown()
+		end
+		back()
+		for i = 1, 4 do
+			placeWallAndFloor()
+			slideLeft()
+			placeWallAndFloor()
+			slideLeft()
+			turtle.select(5)
+			placeDown()
+			--move up and start five side
+			forward()
+			for i = 1, 4 do
+				placeWallAndFloor()
+				slideLeft()
+			end
+			placeWallAndFloor()
+			--move back and do left wing
+			back()
+			turtle.select(5)
+			placeDown()
+			slideLeft()
+			placeWallAndFloor()
+			slideLeft()
+			placeWallAndFloor()
+			turtle.turnLeft()
+		end
+	end
+	do
+		turtle.select(6)
+		for i = 1, 4 do
+			turtle.turnLeft()
+			for j = 1, 3 do
+				forward()
+			end
+			for j = 1, 3 do
+				placeDown()
+				forward()
+			end
+			forward()
+			if i < 4 then forward() end
+		end
+		turtle.turnLeft()
+		forward()
+		for i = 1, 4 do
+			turtle.select(7)
+			placeDown()
+			turtle.select(6)
+			for j = 1, 5 do
+				forward()
+				placeDown()
+			end
+			if i < 4 then forward() end
+			turtle.turnLeft()
+		end
+		forward()
+		for i = 4, 2, -2 do
+			for j = 1, 4 do
+				for k = 1, i do
+					placeDown()
+					if j < 4 or k < i then forward() end
+				end
+				turtle.turnLeft()
+			end
+			forward()
+		end
+		placeDown()
+	end
+end
+
