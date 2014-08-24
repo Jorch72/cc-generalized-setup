@@ -1,0 +1,250 @@
+--Credit for this program goes to Demosthenex on the ComputerCraft Forums.
+--You can find the original thread for this program at this url:
+--http://www.computercraft.info/forums2/index.php?/topic/19726-reactorcraft-hp-turbine-builder/
+--
+--This program was turned into a project file by Lyqyd on 8/24/14.
+
+name = "RC Max-Size Turbine"
+
+requirements = {
+	slots = {
+		[1] = {
+			name = "Steam Line",
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "Steam Inj.",
+			minCount = 8,
+			maxCount = 8,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "Turb. Housing",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[4] = {
+			name = "Turb. Housing",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[5] = {
+			name = "Turb. Housing",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[6] = {
+			name = "Turb. Housing",
+			minCount = 20,
+			maxCount = 20,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[7] = {
+			name = "Turb. Blades",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[8] = {
+			name = "Turb. Blades",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[9] = {
+			name = "Turb. Blades",
+			minCount = 8,
+			maxCount = 8,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[10] = {
+			name = "HP Turb. Block",
+			minCount = 7,
+			maxCount = 7,
+			exactCount = true,
+			readyFunction = nil,
+		}
+	},
+	fuel = 456,
+}
+
+instructions = function()
+	-- Zero origin dead reckoning movement in 20 lines
+	-- Always face forward, x & y & z are relative to our initial position
+	-- Positive X is right of front, positive Y is forward, positive Z is up
+
+	local current = { x=7, y=-8, z=-12 }
+
+	local move = { x = { forward = turtle.forward, back = turtle.back },
+			 y = { forward = turtle.forward, back = turtle.back },
+			 z = { forward = turtle.up,      back = turtle.down }}
+
+	local function walkAxis(axis, destinationCoord)
+		delta = destinationCoord - current[axis]
+		if delta == 0 then return nil end
+		(destinationCoord > current[axis] and move[axis]['forward'] or move[axis]['back'])()
+		current[axis] = (delta / math.abs(delta)) + current[axis]
+		walkAxis(axis, destinationCoord)
+	end
+
+	local function walkTo(x,y,z)
+		if x ~= current['x'] then
+			turtle.turnRight()
+			walkAxis('x', x)
+			turtle.turnLeft()
+		end
+		walkAxis('y', y)
+		walkAxis('z', z)
+	end
+
+	-- Pattern is in x, z, y format.
+
+	local pattern = {
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  2,  2,  2,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  2,  1,  2,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  2,  2,  2,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  3,  3,  3,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  3,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3, 10,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  3,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  3,  3,  3,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  3,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  7,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  7, 10,  7,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  7,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  3,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  3,  3,  3,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  3,  3,  3,  0,  0,  0,  0 },
+		 {  0,  0,  0,  3,  3,  7,  7,  7,  3,  3,  0,  0,  0 },
+		 {  0,  0,  0,  3,  3,  7, 10,  7,  3,  3,  0,  0,  0 },
+		 {  0,  0,  0,  3,  3,  7,  7,  7,  3,  3,  0,  0,  0 },
+		 {  0,  0,  0,  0,  3,  3,  3,  3,  4,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  4,  4,  4,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  4,  4,  4,  4,  4,  0,  0,  0,  0 },
+		 {  0,  0,  0,  4,  4,  7,  7,  7,  4,  4,  0,  0,  0 },
+		 {  0,  0,  0,  4,  7,  7,  7,  7,  7,  4,  0,  0,  0 },
+		 {  0,  0,  0,  4,  7,  7, 10,  7,  7,  4,  0,  0,  0 },
+		 {  0,  0,  0,  4,  7,  7,  7,  7,  7,  4,  0,  0,  0 },
+		 {  0,  0,  0,  4,  4,  7,  7,  7,  4,  4,  0,  0,  0 },
+		 {  0,  0,  0,  0,  4,  4,  4,  4,  4,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  4,  4,  4,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  0,  0,  0 },
+		 {  0,  0,  0,  4,  4,  7,  7,  7,  4,  4,  0,  0,  0 },
+		 {  0,  0,  4,  4,  7,  7,  7,  7,  7,  4,  4,  0,  0 },
+		 {  0,  0,  4,  4,  7,  7, 10,  7,  7,  4,  4,  0,  0 },
+		 {  0,  0,  4,  4,  7,  7,  7,  7,  7,  4,  4,  0,  0 },
+		 {  0,  0,  0,  4,  4,  7,  7,  7,  4,  4,  0,  0,  0 },
+		 {  0,  0,  0,  4,  4,  4,  4,  4,  4,  5,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  5,  5,  5,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  5,  5,  5,  5,  5,  0,  0,  0,  0 },
+		 {  0,  0,  0,  5,  5,  7,  7,  7,  5,  5,  0,  0,  0 },
+		 {  0,  0,  5,  5,  7,  7,  7,  7,  7,  5,  5,  0,  0 },
+		 {  0,  0,  5,  7,  7,  7,  7,  8,  8,  8,  5,  0,  0 },
+		 {  0,  0,  5,  8,  8,  8, 10,  8,  8,  8,  5,  0,  0 },
+		 {  0,  0,  5,  8,  8,  8,  8,  8,  8,  8,  5,  0,  0 },
+		 {  0,  0,  5,  5,  8,  8,  8,  8,  8,  5,  5,  0,  0 },
+		 {  0,  0,  0,  5,  5,  8,  8,  8,  5,  5,  0,  0,  0 },
+		 {  0,  0,  0,  0,  5,  5,  5,  5,  5,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }},
+
+		{{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  5,  5,  5,  5,  5,  0,  0,  0,  0 },
+		 {  0,  0,  0,  5,  5,  5,  8,  5,  5,  5,  0,  0,  0 },
+		 {  0,  0,  5,  5,  8,  8,  8,  8,  8,  5,  5,  0,  0 },
+		 {  0,  5,  5,  8,  8,  8,  8,  8,  8,  8,  5,  5,  0 },
+		 {  0,  5,  5,  8,  8,  8,  8,  8,  8,  8,  5,  5,  0 },
+		 {  0,  5,  8,  8,  8,  8, 10,  8,  8,  8,  8,  5,  0 },
+		 {  0,  5,  5,  8,  8,  8,  8,  8,  8,  8,  5,  6,  0 },
+		 {  0,  6,  6,  8,  8,  8,  8,  8,  9,  9,  6,  6,  0 },
+		 {  0,  0,  6,  6,  9,  9,  9,  9,  9,  6,  6,  0,  0 },
+		 {  0,  0,  0,  6,  6,  6,  9,  6,  6,  6,  0,  0,  0 },
+		 {  0,  0,  0,  0,  6,  6,  6,  6,  6,  0,  0,  0,  0 },
+		 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }}}
+
+	-- MAIN --
+
+	-- Build the pattern
+	for y = 1, #pattern do
+		for z = 1, #pattern[y] do
+			for x = z % 2 == 0 and 1 or #pattern[y][z],  z % 2 == 0 and #pattern[y][z] or 1, z % 2 == 0 and 1 or -1 do
+				item = pattern[y][z][x]
+				if item ~= 0 then
+					walkTo(x, -y, -z)
+					turtle.select(item)
+					turtle.place()
+				end
+			end
+		end
+	end
+
+	turtle.turnLeft()
+	turtle.forward()
+	turtle.forward()
+	turtle.turnRight()
+
+end
