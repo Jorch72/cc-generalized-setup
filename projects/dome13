@@ -75,7 +75,7 @@ instructions = function()
 		end
 	end
 	local function back()
-		while not turtle.back() then
+		while not turtle.back() do
 			turtle.turnLeft()
 			turtle.turnLeft()
 			while turtle.detect() do
