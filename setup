@@ -243,7 +243,11 @@ local function isFuelSufficient()
 		if type(project.requirements.fuel) == "function" then
 			fuelCost = project.requirements.fuel()
 		end
-		return turtle.getFuelLevel() >= fuelCost
+		local otherRequirements = true
+		if project and project.requirements.other and type(project.requirements.other) == "function" then
+			otherRequirements = project.requirements.other()
+		end
+		return turtle.getFuelLevel() >= fuelCost and otherRequirements
 	else
 		return false
 	end
@@ -253,7 +257,7 @@ local function isReady()
 	return project and areAllSlotsReady() and areLocationsReady() and isFuelSufficient()
 end
 
-local displayProjects, handleProjects, displayRequirements, handleRequirements, displaySlots, handleSlots, displayLocations, handleLocations, displayFueling, handleFueling
+local displayProjects, handleProjects, displayRequirements, handleRequirements, displaySlots, handleSlots, displayLocations, handleLocations, displayLocationOptions, handleLocationOptions, displayFueling, handleFueling
 
 function displayProjects()
 	local x, y = term.getSize()
@@ -340,9 +344,9 @@ local function drawRequirementsHeader()
 			term.write(" LOCATIONS ")
 		end
 		if project.requirements.fuel then
-			term.setCursorPos(28, 3)
+			term.setCursorPos(27, 3)
 			setColors(isFuelSufficient())
-			term.write(" FUELING ")
+			term.write(" FUEL/ETC ")
 		end
 	end
 end
@@ -607,6 +611,7 @@ function displayFueling()
 		end
 	end
 	local x, y = term.getSize()
+	local column = math.ceil(x / 2)
 	term.setCursorPos(1, 1)
 	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
 	term.setTextColor(colors.white)
@@ -643,6 +648,20 @@ function displayFueling()
 		term.setTextColor(colors.white)
 		term.setCursorPos(2, 7)
 		term.write("Required: "..fuelCost)
+	end
+	do
+		if project.requirements.other and type(project.requirements.other) then
+			local preReqs = {project.requirements.other()}
+			if preReqs[1] == false then
+				term.setCursorPos(column, 5)
+				term.setTextColor(colors.white)
+				term.write("Unmet Requirements:")
+				for i = 2, #preReqs do
+					term.setCursorPos(column, i + 4)
+					term.write(preReqs[i])
+				end
+			end
+		end
 	end
 end
 
@@ -697,15 +716,19 @@ while not beginProject do
 		term.setCursorPos(xCur, yCur)
 	end
 	local event = {os.pullEvent()}
-	if event[1] == "mouse_click" and isReady() then
+	if event[1] == "mouse_click" then
 		local x, y = term.getSize()
-		if event[4] == y then
+		if event[4] == y and isReady() then
 			local start = (x - 4) / 2 + 1
 			if event[3] >= start and event[3] <= start + 3 then
 				beginProject = true
 			else
 				handler(event)
 			end
+		elseif event[4] == 1 then
+			display = displayProjects
+			handler = handleProjects
+			resetState()
 		else
 			handler(event)
 		end
