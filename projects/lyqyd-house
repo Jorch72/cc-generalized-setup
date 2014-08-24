@@ -38,7 +38,7 @@ requirements = {
 			readyFunction = nil,
 		}
 	},
-	fuel = 352,
+	fuel = 348,
 	other = function()
 		if turtle.craft then
 			return true
