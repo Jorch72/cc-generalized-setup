@@ -1,0 +1,670 @@
+name = "Lyqyd's Starting House"
+
+requirements = {
+	slots = {
+		[1] = {
+			name = "Logs",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "Logs",
+			minCount = 13,
+			maxCount = 13,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "Cobblestone",
+			minCount = 54,
+			maxCount = 54,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[4] = {
+			name = "Glass Panes",
+			minCount = 5,
+			maxCount = 5,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[5] = {
+			name = "Coal",
+			minCount = 9,
+			maxCount = 9,
+			exactCount = true,
+			readyFunction = nil,
+		}
+	},
+	fuel = 352,
+	other = function()
+		if turtle.craft then
+			return true
+		else
+			return false, "Crafty Turtle"
+		end
+	end,
+}
+
+instructions = function()
+	local function ringDistribute(count)
+		turtle.select(1)
+		turtle.transferTo(2, count)
+		turtle.transferTo(3, count)
+		turtle.transferTo(5, count)
+		turtle.transferTo(7, count)
+		turtle.transferTo(9, count)
+		turtle.transferTo(10, count)
+		turtle.transferTo(11, count)
+	end
+
+	do
+		--floor replacement
+		local function step()
+			turtle.dig()
+			turtle.forward()
+			turtle.digDown()
+			turtle.placeDown()
+		end
+		
+		turtle.select(3)
+		turtle.turnLeft()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		for i = 1, 3 do
+			turtle.turnRight()
+			step()
+			turtle.turnRight()
+			for i = 1, 6 do
+				step()
+			end
+			turtle.turnLeft()
+			step()
+			turtle.turnLeft()
+			for i = 1, 6 do
+				step()
+			end
+		end
+	end
+
+	do
+		--move to set chests/table
+		local function makeHole()
+			turtle.select(3)
+			turtle.digDown()
+			turtle.down()
+			turtle.digDown()
+			turtle.placeDown()
+			turtle.up()
+		end
+		
+		turtle.back()
+		--drop coal
+		turtle.turnLeft()
+		turtle.forward()
+		makeHole()
+		turtle.select(5)
+		turtle.dropDown()
+		turtle.forward()
+		turtle.forward()
+		--drop panes
+		makeHole()
+		turtle.select(4)
+		turtle.dropDown()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.forward()
+		--drop cobblestone
+		makeHole()
+		turtle.select(3)
+		turtle.dropDown()
+		turtle.forward()
+		turtle.turnLeft()
+		turtle.forward()
+		--drop logs
+		makeHole()
+		turtle.select(2)
+		turtle.dropDown()
+		turtle.select(1)
+		turtle.dropDown(63)
+		if turtle.getItemCount(3) > 0 then
+			--drop off any cobblestone we have left over now
+			turtle.back()
+			turtle.turnRight()
+			turtle.back()
+			turtle.select(3)
+			turtle.dropDown()
+			turtle.forward()
+			turtle.turnLeft()
+			turtle.forward()
+			turtle.select(1)
+		end
+		--cleanse inventory
+		for i = 2, 16 do
+			turtle.select(i)
+			turtle.drop()
+		end
+		turtle.select(1)
+		turtle.turnRight()
+		--craft and place crafting table
+		turtle.craft()
+		turtle.transferTo(2, 1)
+		turtle.transferTo(5, 1)
+		turtle.transferTo(6, 1)
+		turtle.craft()
+		turtle.place()
+		--retrieve some logs
+		turtle.suckDown()
+		turtle.dropDown(turtle.getItemCount(1) - 4)
+		turtle.craft()
+		--craft two chests
+		ringDistribute(2)
+		turtle.select(6)
+		turtle.craft()
+		turtle.select(1)
+		--retrieve logs
+		turtle.suckDown()
+		turtle.suckDown()
+		turtle.back()
+		turtle.turnLeft()
+		turtle.back()
+		--retrieve cobblestone
+		turtle.select(3)
+		turtle.suckDown()
+		turtle.placeDown()
+		turtle.turnRight()
+		turtle.back()
+		turtle.back()
+		--retrieve glass panes
+		turtle.select(4)
+		turtle.suckDown()
+		turtle.select(3)
+		turtle.placeDown()
+		turtle.turnRight()
+		turtle.back()
+		turtle.back()
+		--retrieve coal
+		turtle.select(5)
+		turtle.suckDown()
+		turtle.select(3)
+		turtle.placeDown()
+		--move to place chest
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		--place chests with correct orientation.
+		turtle.select(6)
+		turtle.place()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.turnRight()
+		turtle.place()
+	end
+
+	do
+		--process materials
+		--drop coal into chest
+		turtle.select(5)
+		turtle.drop()
+		--drop cobble into chest
+		turtle.select(3)
+		turtle.drop()
+		--drop panes into chest
+		turtle.select(4)
+		turtle.drop()
+		--drop sixteen logs into chest
+		turtle.select(1)
+		turtle.drop(16)
+		--move other logs to slot 1
+		turtle.select(2)
+		turtle.transferTo(1)
+		--craft the planks to be used as planks
+		turtle.craft(64)
+		turtle.drop()
+		turtle.craft(4)
+		turtle.drop()
+		--craft the rest of the planks and make the appropriate objects
+		turtle.back()
+		turtle.craft()
+		turtle.drop()
+		turtle.craft()
+		turtle.drop()
+		turtle.craft()
+		turtle.select(1)
+		turtle.suck()
+		turtle.suck()
+		turtle.forward()
+		--two stacks plus 16 at this point in slots 1, 2, 3.
+		--craft stairs
+		turtle.transferTo(6, 18)
+		turtle.transferTo(9, 18)
+		turtle.transferTo(10, 2)
+		turtle.select(2)
+		turtle.transferTo(5)
+		turtle.select(3)
+		turtle.transferTo(10)
+		turtle.select(5)
+		turtle.transferTo(11, 18)
+		turtle.select(2)
+		turtle.craft(16)
+		turtle.drop()
+		turtle.craft(2)
+		turtle.drop()
+		--craft door/pressure plate
+		turtle.select(5)
+		turtle.transferTo(2, 2)
+		turtle.transferTo(6, 1)
+		turtle.transferTo(9, 1)
+		turtle.transferTo(10, 1)
+		turtle.transferTo(1, turtle.getItemCount(5) - 1)
+		turtle.select(3)
+		turtle.craft()
+		turtle.drop()
+		turtle.craft()
+		turtle.drop()
+		turtle.select(1)
+		--craft chest
+		ringDistribute(1)
+		turtle.select(4)
+		turtle.craft()
+		turtle.drop()
+		--craft half-slabs
+		turtle.select(1)
+		turtle.transferTo(2, 2)
+		turtle.transferTo(3, 2)
+		turtle.select(4)
+		turtle.craft()
+		turtle.drop()
+		--craft sticks
+		turtle.select(1)
+		turtle.transferTo(5, 7)
+		turtle.craft()
+		--ladders
+		turtle.transferTo(3, 1)
+		turtle.transferTo(5, 1)
+		turtle.transferTo(6, 1)
+		turtle.transferTo(7, 1)
+		turtle.transferTo(9, 1)
+		turtle.transferTo(11, 1)
+		turtle.select(2)
+		turtle.craft()
+		turtle.drop()
+		--fences
+		turtle.select(1)
+		turtle.transferTo(2, 2)
+		turtle.transferTo(3, 2)
+		turtle.transferTo(5, 2)
+		turtle.transferTo(6, 2)
+		turtle.transferTo(7, 2)
+		turtle.select(4)
+		turtle.craft()
+		turtle.drop()
+		--torches
+		turtle.select(1)
+		turtle.transferTo(5)
+		turtle.suck()
+		turtle.craft()
+		--switch torches into chest and get cobble, make furnace
+		turtle.suck()
+		turtle.drop()
+		turtle.select(2)
+		turtle.transferTo(1)
+		ringDistribute(1)
+		turtle.select(4)
+		turtle.craft()
+		turtle.drop()
+		turtle.select(1)
+		turtle.drop()
+	end
+
+	for i = 1, 15 do
+		turtle.suck()
+	end
+
+	do
+		--place the furnace
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.select(15)
+		turtle.placeDown()
+		turtle.forward()
+		turtle.turnRight()
+		turtle.select(2)
+		turtle.place()
+	end
+
+	do
+		--place 3-high walls
+		local function solidWall()
+			turtle.placeDown()
+			turtle.placeUp()
+			turtle.back()
+			turtle.place()
+		end
+
+		local function windowWall()
+			turtle.select(5)
+			turtle.placeDown()
+			turtle.placeUp()
+			turtle.back()
+			turtle.select(3)
+			turtle.place()
+			turtle.select(5)
+		end
+
+		local function sideWall()
+			turtle.select(4)
+			solidWall()
+			turtle.select(5)
+			solidWall()
+			windowWall()
+			windowWall()
+			solidWall()
+			turtle.turnLeft()
+			turtle.select(4)
+			solidWall()
+		end
+
+		turtle.up()
+		--place ladder column
+		turtle.turnLeft()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.forward()
+		turtle.select(5)
+		solidWall()
+		turtle.select(13)
+		solidWall()
+		turtle.turnLeft()
+		turtle.back()
+		turtle.turnLeft()
+		turtle.select(5)
+		solidWall()
+		windowWall()
+		solidWall()
+		solidWall()
+		turtle.turnLeft()
+		sideWall()
+		turtle.select(6)
+		turtle.transferTo(5)
+		turtle.select(5)
+		solidWall()
+		solidWall()
+		turtle.placeUp()
+		turtle.back()
+		solidWall()
+		solidWall()
+		turtle.turnLeft()
+		sideWall()
+		turtle.turnLeft()
+		turtle.select(5)
+		solidWall()
+	end
+
+	do
+		--place torches
+		turtle.up()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.select(1)
+		turtle.placeDown()
+		turtle.turnLeft()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.placeDown()
+	end
+
+	do
+		--place loft, chest and fences
+		local function step()
+			turtle.forward()
+			turtle.placeDown()
+		end
+
+		turtle.up()
+		turtle.turnLeft()
+		turtle.turnLeft()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.forward()
+		turtle.select(12)
+		step()
+		turtle.turnLeft()
+		for i = 1, 3 do
+			step()
+		end
+		turtle.turnLeft()
+		step()
+		do
+			--chest placement
+			turtle.turnLeft()
+			turtle.turnLeft()
+			turtle.select(11)
+			turtle.place()
+			turtle.turnRight()
+			turtle.select(12)
+		end
+		step()
+		step()
+		turtle.turnRight()
+		step()
+		turtle.turnRight()
+		step()
+		step()
+		turtle.up()
+		turtle.turnRight()
+		turtle.turnRight()
+		turtle.select(14)
+		turtle.placeDown()
+		step()
+		step()
+	end
+
+	do
+		--place final layers of walls
+		local function step()
+			turtle.placeDown()
+			turtle.back()
+		end
+
+		local function sideWall()
+			turtle.select(4)
+			step()
+			turtle.select(5)
+			step()
+			turtle.place()
+			turtle.placeUp()
+			step()
+			turtle.place()
+			turtle.placeUp()
+			step()
+			turtle.place()
+			step()
+			turtle.place()
+			turtle.turnRight()
+			turtle.select(4)
+			step()
+		end
+
+		for i = 1, 3 do
+			turtle.back()
+		end
+		turtle.turnRight()
+		turtle.select(5)
+		for i = 1, 3 do
+			step()
+		end
+		turtle.turnRight()
+		sideWall()
+		turtle.select(5)
+		for i = 1, 5 do
+			step()
+		end
+		turtle.turnRight()
+		sideWall()
+		turtle.select(5)
+		step()
+		turtle.turnRight()
+		step()
+	end
+
+	do
+		--place roof
+		local function ascend()
+			turtle.placeUp()
+			turtle.back()
+			turtle.up()
+			turtle.up()
+			turtle.forward()
+			turtle.place()
+			turtle.up()
+			turtle.forward()
+			turtle.forward()
+			turtle.down()
+			turtle.placeUp()
+			turtle.forward()
+			turtle.up()
+			turtle.placeUp()
+		end
+
+		local function descend()
+			turtle.placeUp()
+			turtle.back()
+			turtle.down()
+			turtle.placeUp()
+			turtle.back()
+			turtle.back()
+			turtle.place()
+			turtle.down()
+			turtle.down()
+			turtle.placeUp()
+		end
+
+		local function peak()
+			turtle.forward()
+			turtle.turnLeft()
+			turtle.turnLeft()
+		end
+
+		turtle.turnRight()
+		turtle.turnRight()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		for i = 1, 2 do
+			for i = 1, 3 do
+				turtle.forward()
+			end
+			turtle.turnRight()
+		end
+		turtle.down()
+		turtle.down()
+		turtle.forward()
+		turtle.select(7)
+		for i = 1, 9 do
+			if i == 2 or i == 8 then
+				turtle.back()
+				turtle.up()
+				for i = 1, 4 do
+					turtle.place()
+					turtle.up()
+					turtle.forward()
+				end
+				peak()
+				for i = 1, 4 do
+					turtle.back()
+					turtle.down()
+					turtle.place()
+				end
+				turtle.down()
+				turtle.forward()
+			elseif i == 1 or i == 9 then
+				for i = 1, 4 do
+					turtle.placeUp()
+					if i < 4 then
+						turtle.forward()
+						turtle.up()
+					end
+				end
+				peak()
+				for i = 1, 4 do
+					turtle.placeUp()
+					if i < 4 then
+						turtle.down()
+						turtle.back()
+					end
+				end
+				if i == 1 then
+					turtle.select(8)
+					turtle.transferTo(7)
+					turtle.select(7)
+				end
+			else
+				ascend()
+				peak()
+				descend()
+			end
+			if i % 2 == 0 then
+				turtle.turnRight()
+				turtle.forward()
+				turtle.turnLeft()
+			elseif i < 9 then
+				turtle.turnLeft()
+				turtle.forward()
+				turtle.turnRight()
+			end
+		end
+	end
+
+	do
+		--place pressure plate, door and final torch
+		turtle.turnRight()
+		for i = 1, 5 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		turtle.select(1)
+		turtle.placeDown()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.turnRight()
+		turtle.down()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.turnRight()
+		turtle.forward()
+		turtle.forward()
+		--drop off extras in chest
+		for i = 1, 15 do
+			if i ~= 9 and i ~= 10 then
+				turtle.select(i)
+				turtle.dropDown()
+			end
+		end
+		turtle.back()
+		turtle.back()
+		turtle.turnLeft()
+		turtle.back()
+		turtle.select(10)
+		turtle.placeDown()
+		turtle.back()
+		turtle.back()
+		turtle.down()
+		turtle.select(9)
+		turtle.place()
+		turtle.up()
+		turtle.up()
+	end
+end
