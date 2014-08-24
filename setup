@@ -3,6 +3,27 @@ local project, loc, buildLoc
 local display, handler
 local beginProject = false
 local headingNames = {"West", "North", "East", "South"}
+local posIsGPS = false
+local editingTable, editingKey, editingCursorPos
+
+local function constructEnv()
+	local env = {requirements = project.requirements, shell = shell}
+	setmetatable(env, {__index = _G})
+	if env.requirements.locations then
+		env.requirements.locations.start = loc
+		env.requirements.locations.setup = buildLoc
+	end
+	return env
+end
+
+local function resetState()
+	project = nil
+	projectOffset = 1
+	buildLoc = nil
+	if not posIsGPS then loc = nil end
+	beginProject = false
+	editingTable, editingKey, editingCursorPos = nil, nil, nil
+end
 
 local projects = {}
 
@@ -18,9 +39,9 @@ if fs.exists("/projects") and fs.isDir("/projects") then
 			setfenv(fn, env)
 			fn()
 			--copy into project table
-			projects[name] = {}
+			projects[env.name] = {}
 			for k, v in pairs(env) do
-				projects[name][k] = v
+				projects[env.name][k] = v
 			end
 		end
 	end
@@ -34,8 +55,6 @@ for name in pairs(projects) do
 	table.insert(sortedProjects, name)
 end
 table.sort(sortedProjects)
-
-local headingNames = {"West", "North", "East", "South"}
 
 location = {}
 local Location = {
@@ -402,8 +421,6 @@ function handleSlots(event)
 	end
 end
 
-local editingTable, editingKey, editingCursorPos
-
 function displayLocations()
 	drawRequirementsHeader()
 	local x, y = term.getSize()
@@ -460,7 +477,7 @@ function displayLocations()
 		if buildLoc and buildLoc.h and headingNames[buildLoc.h] then
 			term.write(headingNames[buildLoc.h])
 		end
-		if project.requirements.locations.setup and #project.requirements.locations.setup > 1 then
+		if project.requirements.locations and #project.requirements.locations > 1 then
 			term.setCursorPos((x - column - 9) / 2 + column, 11)
 			term.write("(Options)")
 		end
@@ -541,8 +558,11 @@ function handleLocations(event)
 		elseif event[4] >= 6 and event[4] <= 8 then
 			--clicked on one of the six xyz position entries.
 			if event[3] >= 2 and event[3] <= column - 2 then
+				--if GPS position, cannot edit starting positions.
+				if posIsGPS then return end
 				editingTable = loc
 			elseif event[3] >= column and event[3] <= x - 1 then
+				if not buildLoc then buildLoc = location.new() end
 				editingTable = buildLoc
 			end
 			local keyLookup = {[6] = "x", [7] = "y", [8] = "z"}
@@ -550,7 +570,8 @@ function handleLocations(event)
 			editingCursorPos = string.len(tostring(editingTable[editingKey])) + 1
 		elseif event[4] == 9 then
 			if event[3] >= 2 and event[3] <= column - 2 then
-				--adjust start position facing
+				--adjust start position facing unless position is GPS-based
+				if posIsGPS then return end
 				loc.h = loc.h + 1
 				if loc.h == 5 then loc.h = 1 end
 			elseif event[3] >= column and event[3] <= x - 1 then
@@ -564,6 +585,14 @@ function handleLocations(event)
 			numericRead(event)
 		end
 	end
+end
+
+function displayLocationOptions()
+	--
+end
+
+function handleLocationOptions(event)
+	--
 end
 
 function displayFueling()
@@ -643,6 +672,8 @@ do
 			if not turtle.back() then
 				loc.x, loc.y, loc.z = secLoc.x, secLoc.y, secLoc.z
 			end
+			--set starting position to be unmodifiable.
+			posIsGPS = true
 		end
 	else
 		loc = location.new(0, 0, 0, 0)
@@ -683,10 +714,6 @@ while not beginProject do
 	end
 end
 
-requirements = project.requirements
-if requirements.locations then
-	requirements.locations.start = loc
-	requirements.locations.setup = buildLoc
-end
+setfenv(project.instructions, constructEnv())
 
 project.instructions()
