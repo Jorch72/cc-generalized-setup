@@ -5,9 +5,10 @@ local beginProject = false
 local headingNames = {"West", "North", "East", "South"}
 local posIsGPS = false
 local editingTable, editingKey, editingCursorPos
+local location = {}
 
 local function constructEnv()
-	local env = {requirements = project.requirements, shell = shell}
+	local env = {requirements = project.requirements, shell = shell, location = location}
 	setmetatable(env, {__index = _G})
 	if env.requirements.locations then
 		env.requirements.locations.start = loc
@@ -56,7 +57,6 @@ for name in pairs(projects) do
 end
 table.sort(sortedProjects)
 
-location = {}
 local Location = {
 	add = function(self, o)
 		return vector.new(
@@ -241,6 +241,8 @@ local function isFuelSufficient()
 	if project and project.requirements.fuel then
 		local fuelCost = project.requirements.fuel
 		if type(project.requirements.fuel) == "function" then
+			local env = constructEnv()
+			setfenv(project.requirements.fuel, env)
 			fuelCost = project.requirements.fuel()
 		end
 		local otherRequirements = true
@@ -513,11 +515,17 @@ local function numericRead(event)
 		if event[2] == "-" then
 			editingTable[editingKey] = editingTable[editingKey] * -1
 		elseif tonumber(event[2]) ~= nil then
-			local length = #str
-			str = string.sub(str, 1, editingCursorPos - 1)..event[2]..string.sub(str, editingCursorPos)
-			set(str)
-			if #str > length then
-				editingCursorPos = editingCursorPos + 1
+			if str == "0" then
+				str = event[2]
+				set(str)
+				editingCursorPos = 2
+			else
+				local length = #str
+				str = string.sub(str, 1, editingCursorPos - 1)..event[2]..string.sub(str, editingCursorPos)
+				set(str)
+				if #str > length then
+					editingCursorPos = math.min(editingCursorPos + 1, #str + 1)
+				end
 			end
 		end
 	elseif event[1] == "key" then
@@ -529,7 +537,7 @@ local function numericRead(event)
 			--backspace
 			local length = #str
 			str = string.sub(str, 1, editingCursorPos - 2)..string.sub(str, editingCursorPos)
-			if length < #str then
+			if length > #str then
 				editingCursorPos = math.max(editingCursorPos - 1, 1)
 			end
 			set(str)
@@ -558,7 +566,12 @@ function handleLocations(event)
 	local column = math.ceil(x / 2)
 	if event[1] == "mouse_click" then
 		if event[4] <= 4 then
-			return handleRequirementsHeader(event)
+			handleRequirementsHeader(event)
+			if display ~= displayLocations then
+				term.setCursorBlink(false)
+				editingTable, editingKey, editingCursorPos = nil, nil, nil
+				return
+			end
 		elseif event[4] >= 6 and event[4] <= 8 then
 			--clicked on one of the six xyz position entries.
 			if event[3] >= 2 and event[3] <= column - 2 then
@@ -583,6 +596,15 @@ function handleLocations(event)
 				buildLoc.h = buildLoc.h + 1
 				if buildLoc.h == 5 then buildLoc.h = 1 end
 			end
+		elseif event[4] == 11 then
+			local optionsStart = (x - column - 9) / 2 + column
+			if event[3] >= optionsStart and event[3] <= optionsStart + 8 then
+				--clicked Options
+				term.setCursorBlink(false)
+				editingTable, editingKey, editingCursorPos = nil, nil, nil
+				display = displayLocationOptions
+				handler = handleLocationOptions
+			end
 		end
 	elseif event[1] == "char" or event[1] == "key" then
 		if editingTable and editingKey and editingCursorPos then
@@ -592,11 +614,50 @@ function handleLocations(event)
 end
 
 function displayLocationOptions()
-	--
+	drawRequirementsHeader()
+	local x, y = term.getSize()
+	local column = math.ceil(x / 2)
+	term.setCursorPos(1, 1)
+	term.setBackgroundColor(term.isColor() and colors.gray or colors.black)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	printCenter(project.name.." - Locations")
+	do
+		term.setCursorPos(2, 5)
+		if project.requirements.locations.name then
+			term.write(project.requirements.locations.name)
+		else
+			term.write("Location Options")
+		end
+		for i, locData in ipairs(project.requirements.locations) do
+			term.setCursorPos(2, i + 5)
+			term.write(locData.name)
+			term.setCursorPos(column, i + 5)
+			if type(locData.location) == "function" then
+				local env = constructEnv()
+				setfenv(locData.location, env)
+				term.write(tostring(locData.location()))
+			else
+				term.write(tostring(locData.location))
+			end
+		end
+	end
 end
 
 function handleLocationOptions(event)
-	--
+	if event[1] == "mouse_click" then
+		if event[4] <= 4 then
+			return handleRequirementsHeader(event)
+		elseif event[4] >= 6 and event[4] <= #project.requirements.locations + 5 then
+			if type(project.requirements.locations[event[4] - 5].location) == "function" then
+				buildLoc = project.requirements.locations[event[4] - 5].location()
+			else
+				buildLoc = project.requirements.locations[event[4] - 5].location
+			end
+			display = displayLocations
+			handler = handleLocations
+		end
+	end
 end
 
 function displayFueling()
@@ -620,6 +681,8 @@ function displayFueling()
 	do
 		local fuelCost = project.requirements.fuel
 		if type(project.requirements.fuel) == "function" then
+			local env = constructEnv()
+			setfenv(project.requirements.fuel, env)
 			fuelCost = project.requirements.fuel()
 		end
 		local fuel = turtle.getFuelLevel()
