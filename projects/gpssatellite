@@ -34,77 +34,85 @@ requirements = {
 		},
 	},
 	locations = {
-		[1] = "directly above",
-		[2] = "grid-aligned",
-		name = "cluster location",
-		["directly above"] = function()
-			local loc = requirements.locations.current
-			return location.new(loc.x, 254, loc.z, 1)
-		end,
-		["grid-aligned"] = function()
-			local towerTable = {}
+		name = "Cluster Location",
+		[1] = {
+			name = "Directly Above",
+			location = function()
+				local loc = requirements.locations.start
+				if not location then error("No location API") end
+				return location.new(loc.x, 254, loc.z, 1)
+			end,
+		},
+		[2] = {
+			name = "Grid-Aligned",
+			location = function()
+				local towerTable = {}
 
-			if fs.exists(".towers") then
-				handle = io.open(".towers", "r")
-				if handle then
-					for line in handle:lines() do
-						local coords, ids = string.match(line, "(.-);(.*)")
-						towerTable[coords] = ids
-					end
-					handle:close()
-				end
-			end
-
-			local loc = requirements.locations.current
-
-			local minX = math.floor(loc.x / 372) * 372
-			local minZ = math.floor(loc.z / 372) * 372
-			local maxX = minX + 372
-			local maxZ = minZ + 372
-
-			--determine closest needed tower position
-			local neededTowers, distances = {}, {}
-			if not towerTable[minX..","..minZ] then
-				table.insert(neededTowers, {minX, minZ})
-				table.insert(distances, math.sqrt((loc.x - minX) ^ 2 + (loc.z - minZ) ^ 2))
-			end
-			if not towerTable[minX..","..maxZ] then
-				table.insert(neededTowers, {minX, maxZ})
-				table.insert(distances, math.sqrt((loc.x - minX) ^ 2 + (loc.z - maxZ) ^ 2))
-			end
-			if not towerTable[maxX..","..minZ] then
-				table.insert(neededTowers, {maxX, minZ})
-				table.insert(distances, math.sqrt((loc.x - maxX) ^ 2 + (loc.z - minZ) ^ 2))
-			end
-			if not towerTable[maxX..","..maxZ] then
-				table.insert(neededTowers, {maxX, maxZ})
-				table.insert(distances, math.sqrt((loc.x - maxX) ^ 2 + (loc.z - maxZ) ^ 2))
-			end
-
-			local distance = 9000
-			local coords
-			if #neededTowers > 0 then
-				for i=1, #neededTowers do
-					if distances[i] < distance then
-						distance = distances[i]
-						coords = neededTowers[i]
+				if fs.exists(".towers") then
+					handle = io.open(".towers", "r")
+					if handle then
+						for line in handle:lines() do
+							local coords, ids = string.match(line, "(.-);(.*)")
+							towerTable[coords] = ids
+						end
+						handle:close()
 					end
 				end
-			end
 
-			if coords then
-				towerLoc = location.new(coords[1], 254, coords[2], 1)
-			end
+				local loc = requirements.locations.start
 
-			return towerLoc
-		end,
+				local minX = math.floor(loc.x / 372) * 372
+				local minZ = math.floor(loc.z / 372) * 372
+				local maxX = minX + 372
+				local maxZ = minZ + 372
+
+				--determine closest needed tower position
+				local neededTowers, distances = {}, {}
+				if not towerTable[minX..","..minZ] then
+					table.insert(neededTowers, {minX, minZ})
+					table.insert(distances, math.sqrt((loc.x - minX) ^ 2 + (loc.z - minZ) ^ 2))
+				end
+				if not towerTable[minX..","..maxZ] then
+					table.insert(neededTowers, {minX, maxZ})
+					table.insert(distances, math.sqrt((loc.x - minX) ^ 2 + (loc.z - maxZ) ^ 2))
+				end
+				if not towerTable[maxX..","..minZ] then
+					table.insert(neededTowers, {maxX, minZ})
+					table.insert(distances, math.sqrt((loc.x - maxX) ^ 2 + (loc.z - minZ) ^ 2))
+				end
+				if not towerTable[maxX..","..maxZ] then
+					table.insert(neededTowers, {maxX, maxZ})
+					table.insert(distances, math.sqrt((loc.x - maxX) ^ 2 + (loc.z - maxZ) ^ 2))
+				end
+
+				local distance = 9000
+				local coords
+				if #neededTowers > 0 then
+					for i=1, #neededTowers do
+						if distances[i] < distance then
+							distance = distances[i]
+							coords = neededTowers[i]
+						end
+					end
+				end
+
+				if coords then
+					towerLoc = location.new(coords[1], 254, coords[2], 1)
+				end
+
+				return towerLoc
+			end,
+		},
 	},
 	fuel = function()
-		do return 20 end
-		local start = requirements.location.start
-		local tower = requirements.location.setup[requirements.location.selected]
-		local dist = tower - start
-		return (math.abs(dist.x) + math.abs(dist.y) + math.abs(dist.z)) * 2 + 80
+		local start = requirements.locations.start
+		local tower = requirements.locations.setup
+		if start and tower and start.y > 0 and tower.y > 0 then
+			local dist = tower - start
+			return (math.abs(dist.x) + math.abs(dist.y) + math.abs(dist.z)) * 2 + 80
+		else
+			return math.huge
+		end
 	end,
 }
 
@@ -136,13 +144,16 @@ end
 if modem then
 	while true do
 		modem.transmit(65532, os.getComputerID(), "beacon")
-		os.startTimer(1)
-		local event = {os.pullEvent()}
-		if event[1] == "char" and event[2] == "q" then
-			fs.delete("beacon")
-			fs.delete("startup")
-			return
-		end
+		local timeout = os.startTimer(1)
+		local event
+		repeat
+			event = {os.pullEvent()}
+			if event[1] == "char" and event[2] == "q" then
+				fs.delete("beacon")
+				fs.delete("startup")
+				return
+			end
+		until event[1] == "timer" and event[2] == timeout
 	end
 end
 ]]
