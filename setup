@@ -936,6 +936,8 @@ while not beginProject do
 			display = displayProjects
 			handler = handleProjects
 			resetState()
+		elseif event[2] == "g" and isReady() then
+			beginProject = true
 		else
 			handler(event)
 		end
