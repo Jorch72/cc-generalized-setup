@@ -23,6 +23,7 @@ THE SOFTWARE.
 --]]
 
 local projectOffset = 1
+local projectCursor = 1
 local project, loc, buildLoc
 local display, handler
 local beginProject = false
@@ -44,6 +45,7 @@ end
 local function resetState()
 	project = nil
 	projectOffset = 1
+	projectCursor = 1
 	buildLoc = nil
 	if not posIsGPS then loc = nil end
 	beginProject = false
@@ -292,8 +294,13 @@ function displayProjects()
 			term.setBackgroundColor(index % 2 == 0 and colors.white or colors.lightGray)
 			term.setTextColor(colors.black)
 		else
-			term.setBackgroundColor(colors.black)
-			term.setTextColor(colors.white)
+			if index == projectCursor then
+				term.setBackgroundColor(colors.white)
+				term.setTextColor(colors.black)
+			else
+				term.setBackgroundColor(colors.black)
+				term.setTextColor(colors.white)
+			end
 		end
 		term.clearLine()
 		local x, y = term.getCursorPos()
@@ -312,8 +319,8 @@ function displayProjects()
 end
 
 function handleProjects(event)
+	local x, y = term.getSize()
 	if event[1] == "mouse_click" then
-		local x, y = term.getSize()
 		if event[4] >= 3 and event[4] <= y then
 			--clicked somewhere in the places list
 			if event[3] == x then
@@ -338,6 +345,25 @@ function handleProjects(event)
 					--we have a project selected, use projects[sortedProjects[index]] to access.
 				end			
 			end
+		end
+	elseif event[1] == "key" and not term.isColor() then
+		if event[2] == 200 then
+			--up
+			projectCursor = math.max(projectCursor - 1, 1)
+		elseif event[2] == 208 then
+			--down
+			projectCursor = math.min(projectCursor + 1, #sortedProjects)
+		elseif event[2] == 28 then
+			--enter, selects a project
+			project = projects[sortedProjects[projectCursor]]
+			display = displayRequirements
+			handler = handleRequirements
+		end
+		--attempt to keep cursor on screen
+		if projectCursor < projectOffset then
+			projectOffset = projectCursor
+		elseif projectOffset + y - 2 < projectCursor then
+			projectOffset = projectCursor - y + 2
 		end
 	end
 end
@@ -394,6 +420,20 @@ local function handleRequirementsHeader(event)
 				handler = handleFueling
 			end
 		end
+	elseif event[1] == "char" then
+		if string.lower(event[2]) == "s" then
+			--slots
+			display = displaySlots
+			handler = handleSlots
+		elseif string.lower(event[2]) == "l" then
+			--locations
+			display = displayLocations
+			handler = handleLocations
+		elseif string.lower(event[2]) == "f" then
+			--fueling
+			display = displayFueling
+			handler = handleFueling
+		end
 	end
 end
 
@@ -448,6 +488,8 @@ function handleSlots(event)
 		if event[4] <= 4 then
 			return handleRequirementsHeader(event)
 		end
+	elseif event[1] == "char" then
+		return handleRequirementsHeader(event)
 	end
 end
 
@@ -551,6 +593,8 @@ local function numericRead(event)
 					editingCursorPos = math.min(editingCursorPos + 1, #str + 1)
 				end
 			end
+		else
+			return handleRequirementsHeader(event)
 		end
 	elseif event[1] == "key" then
 		if event[2] == 28 then
@@ -631,8 +675,49 @@ function handleLocations(event)
 			end
 		end
 	elseif event[1] == "char" or event[1] == "key" then
-		if editingTable and editingKey and editingCursorPos then
+		if event[1] == "key" and event[2] == 15 then
+			--they hit tab
+			if editingTable then
+				if editingKey ~= "z" then
+					editingKey = string.char(string.byte(editingKey) + 1)
+				else
+					editingKey = "x"
+					if posIsGPS then
+						editingTable = buildLoc
+					else
+						editingTable = editingTable == loc and buildLoc or loc
+					end
+				end
+			else
+				if posIsGPS then
+					editingTable = buildLoc
+				else
+					editingTable = loc
+				end
+				editingKey = "x"
+				editingCursorPos = string.len(tostring(editingTable[editingKey])) + 1
+			end
+		elseif editingTable and editingKey and editingCursorPos then
 			numericRead(event)
+		elseif event[1] == "char" then
+			if event[2] == "h" then
+				--loc facing
+				if posIsGPS then return end
+				loc.h = loc.h + 1
+				if loc.h == 5 then loc.h = 1 end
+			elseif event[2] == "H" then
+				--buildLoc facing
+				buildLoc.h = buildLoc.h + 1
+				if buildLoc.h == 5 then buildLoc.h = 1 end
+			elseif string.lower(event[2]) == "o" then
+				--options
+				term.setCursorBlink(false)
+				editingTable, editingKey, editingCursorPos = nil, nil, nil
+				display = displayLocationOptions
+				handler = handleLocationOptions
+			else
+				return handleRequirementsHeader(event)
+			end
 		end
 	end
 end
@@ -655,6 +740,9 @@ function displayLocationOptions()
 		end
 		for i, locData in ipairs(project.requirements.locations) do
 			term.setCursorPos(2, i + 5)
+			if not term.isColor() then
+				term.write(tostring(i)..": ")
+			end
 			term.write(locData.name)
 			term.setCursorPos(column, i + 5)
 			if type(locData.location) == "function" then
@@ -680,6 +768,18 @@ function handleLocationOptions(event)
 			end
 			display = displayLocations
 			handler = handleLocations
+		end
+	elseif event[1] == "char" then
+		if tonumber(event[2]) then
+			if type(project.requirements.locations[tonumber(event[2])].location) == "function" then
+				buildLoc = project.requirements.locations[tonumber(event[2])].location()
+			else
+				buildLoc = project.requirements.locations[tonumber(event[2])].location
+			end
+			display = displayLocations
+			handler = handleLocations
+		else
+			return handleRequirementsHeader(event)
 		end
 	end
 end
@@ -763,6 +863,15 @@ function handleFueling(event)
 				turtle.refuel(64)
 			end
 		end
+	elseif event[2] == "char" then
+		if event[2] == "r" then
+			for i = #project.requirements.slots + 1, 16 do
+				turtle.select(i)
+				turtle.refuel(64)
+			end
+		else
+			return handleRequirementsHeader(event)
+		end
 	end
 end
 
@@ -819,11 +928,28 @@ while not beginProject do
 		else
 			handler(event)
 		end
+	elseif event[1] == "char" then
+		if event[2] == "q" then
+			break
+		elseif event[2] == "p" then
+			--reset project
+			display = displayProjects
+			handler = handleProjects
+			resetState()
+		else
+			handler(event)
+		end
 	else
 		handler(event)
 	end
 end
 
-setfenv(project.instructions, constructEnv())
-
-project.instructions()
+if beginProject then
+	setfenv(project.instructions, constructEnv())
+	project.instructions()
+else
+	term.setBackgroundColor(colors.black)
+	term.setTextColor(colors.white)
+	term.clear()
+	term.setCursorPos(1,1)
+end
