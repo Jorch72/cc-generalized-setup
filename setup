@@ -421,15 +421,15 @@ local function handleRequirementsHeader(event)
 			end
 		end
 	elseif event[1] == "char" then
-		if string.lower(event[2]) == "s" then
+		if string.lower(event[2]) == "s" and projects.requirements.slots then
 			--slots
 			display = displaySlots
 			handler = handleSlots
-		elseif string.lower(event[2]) == "l" then
+		elseif string.lower(event[2]) == "l" and project.requirements.location then
 			--locations
 			display = displayLocations
 			handler = handleLocations
-		elseif string.lower(event[2]) == "f" then
+		elseif string.lower(event[2]) == "f" and project.requirements.fuel then
 			--fueling
 			display = displayFueling
 			handler = handleFueling
