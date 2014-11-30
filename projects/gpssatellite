@@ -170,6 +170,9 @@ else
 	if fs.exists("/disk/put") then
 		fs.copy("/disk/put", "/put")
 	end
+	if fs.exists("/disk/framebuffer") then
+		fs.copy("/disk/framebuffer", "/framebuffer")
+	end
 	fs.copy("/disk/gpsStart", "/gpsStart")
 	local file = io.open("/startup", "w")
 	if file then
