@@ -55,10 +55,19 @@ local function resetState()
 end
 
 local projects = {}
+local projectDir = ""
 
-if fs.exists("/projects") and fs.isDir("/projects") then
-	for _, name in pairs(fs.list("/projects")) do
-		local file = fs.combine("/projects", name)
+if fs.exists("/etc/projects") and fs.isDir("/etc/projects") then
+	projectDir = "/etc/projects"
+elseif fs.getDir and fs.exists(fs.combine(fs.getDir(shell.getRunningProgram()), "projects")) and fs.isDir(fs.combine(fs.getDir(shell.getRunningProgram()), "projects")) then
+	projectDir = fs.combine(fs.getDir(shell.getRunningProgram()), "projects")
+elseif fs.exists("/projects") and fs.isDir("/projects") then
+	projectDir = "/projects"
+end
+
+if projectDir then
+	for _, name in pairs(fs.list(projectDir)) do
+		local file = fs.combine(projectDir, name)
 		local usefulEnv = {shell = shell}
 		setmetatable(usefulEnv, {__index = _G})
 		local env = {}
