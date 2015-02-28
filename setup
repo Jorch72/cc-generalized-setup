@@ -32,7 +32,6 @@ local beginProject = false
 local headingNames = {"West", "North", "East", "South"}
 local posIsGPS = false
 local editingTable, editingKey, editingCursorPos
-local location = {}
 
 local function constructEnv()
 	local env = {requirements = project.requirements, shell = shell, location = location}
