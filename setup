@@ -34,7 +34,7 @@ local posIsGPS = false
 local editingTable, editingKey, editingCursorPos
 
 local function constructEnv()
-	local env = {requirements = project.requirements, shell = shell, location = location}
+	local env = {requirements = project.requirements, shell = shell}
 	setmetatable(env, {__index = _G})
 	if env.requirements.locations then
 		env.requirements.locations.start = loc
@@ -297,11 +297,11 @@ local function handleRequirementsHeader(event)
 			end
 		end
 	elseif event[1] == "char" then
-		if string.lower(event[2]) == "s" and projects.requirements.slots then
+		if string.lower(event[2]) == "s" and project.requirements.slots then
 			--slots
 			display = displaySlots
 			handler = handleSlots
-		elseif string.lower(event[2]) == "l" and project.requirements.location then
+		elseif string.lower(event[2]) == "l" and project.requirements.locations then
 			--locations
 			display = displayLocations
 			handler = handleLocations
@@ -425,7 +425,7 @@ function displayLocations()
 		if buildLoc and buildLoc.h and headingNames[buildLoc.h] then
 			term.write(headingNames[buildLoc.h])
 		end
-		if project.requirements.locations and #project.requirements.locations > 1 then
+		if project.requirements.locations and #project.requirements.locations > 0 then
 			term.setCursorPos((x - column - 9) / 2 + column, 11)
 			term.write("(Options)")
 		end
@@ -542,7 +542,7 @@ function handleLocations(event)
 			end
 		elseif event[4] == 11 then
 			local optionsStart = (x - column - 9) / 2 + column
-			if event[3] >= optionsStart and event[3] <= optionsStart + 8 then
+			if event[3] >= optionsStart and event[3] <= optionsStart + 8 and #project.requirements.locations > 0 then
 				--clicked Options
 				term.setCursorBlink(false)
 				editingTable, editingKey, editingCursorPos = nil, nil, nil
@@ -585,7 +585,7 @@ function handleLocations(event)
 				--buildLoc facing
 				buildLoc.h = buildLoc.h + 1
 				if buildLoc.h == 5 then buildLoc.h = 1 end
-			elseif string.lower(event[2]) == "o" then
+			elseif string.lower(event[2]) == "o" and #project.requirements.locations > 0 then
 				--options
 				term.setCursorBlink(false)
 				editingTable, editingKey, editingCursorPos = nil, nil, nil
@@ -739,7 +739,7 @@ function handleFueling(event)
 				turtle.refuel(64)
 			end
 		end
-	elseif event[2] == "char" then
+	elseif event[1] == "char" then
 		if event[2] == "r" then
 			for i = #project.requirements.slots + 1, 16 do
 				turtle.select(i)
