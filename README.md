@@ -1,3 +1,5 @@
+### Lyqyd's Project Builder - One-Stop Project Setup GUI for ComputerCraft Turtles
+
 # 1 - Setup
 
 ## 1.1 - Manual Installation
