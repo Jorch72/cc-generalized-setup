@@ -1,0 +1,642 @@
+name = "Storage Controller"
+
+requirements = {
+	slots = {
+		[1] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[4] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[5] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[6] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[7] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[8] = {
+			name = "Stone Bricks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[9] = {
+			name = "Stone Bricks",
+			minCount = 43,
+			maxCount = 43,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[10] = {
+			name = "Counters",
+			minCount = 3,
+			maxCount = 6,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[11] = {
+			name = "Quad Bases",
+			minCount = 2,
+			maxCount = 5,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[12] = {
+			name = "Wired Modems",
+			minCount = 12,
+			maxCount = 12,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[13] = {
+			name = "Network Cable",
+			minCount = 58,
+			maxCount = 58,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[14] = {
+			name = "Computer",
+			minCount = 3,
+			maxCount = 3,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[15] = {
+			name = "Torches",
+			minCount = 10,
+			maxCount = 10,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[16] = {
+			name = "Chests",
+			minCount = 1,
+			maxCount = 4,
+			exactCount = false,
+			readyFunction = nil,
+		},
+	},
+	fuel = 714,
+}
+
+instructions = function()
+
+	local function placeModemUp()
+		turtle.select(12)
+		turtle.placeUp()
+		turtle.select(13)
+		turtle.placeUp()
+	end
+
+	local brickCount = 0
+	local function placeBrick()
+		turtle.select(math.floor(brickCount / 64) + 1)
+		turtle.place()
+		brickCount = brickCount + 1
+	end
+	local function placeBrickUp()
+		turtle.select(math.floor(brickCount / 64) + 1)
+		turtle.placeUp()
+		brickCount = brickCount + 1
+	end
+	local function placeBrickDown()
+		turtle.select(math.floor(brickCount / 64) + 1)
+		turtle.placeDown()
+		brickCount = brickCount + 1
+	end
+
+	local function stepBackAndPlace(count, brick)
+		for i = 1, count do
+			turtle.back()
+			if brick then
+				placeBrick()
+			else
+				turtle.place()
+			end
+		end
+	end
+
+	do
+		--place sort computer
+		turtle.up()
+		turtle.forward()
+		turtle.forward()
+		turtle.turnRight()
+		turtle.forward()
+		turtle.select(14)
+		turtle.place()
+	end
+	do
+		--place master computer
+		for i = 1, 3 do
+			turtle.up()
+		end
+		for i = 1, 6 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		for i = 1, 6 do
+			turtle.forward()
+		end
+		turtle.select(14)
+		turtle.place()
+	end
+	do
+		--place storage computer and its adjacent peripherals
+		turtle.back()
+		turtle.turnLeft()
+		turtle.select(10)
+		turtle.place()
+		turtle.turnRight()
+		turtle.turnRight()
+		turtle.place()
+		turtle.turnLeft()
+		turtle.back()
+		turtle.select(14)
+		turtle.place()
+		turtle.back()
+		turtle.select(11)
+		turtle.place()
+	end
+	do
+		--place perimeter peripherals
+
+		local function placePerimeterCluster()
+			turtle.turnRight()
+			turtle.select(10)
+			turtle.place()
+			turtle.back()
+			turtle.select(12)
+			turtle.place()
+			turtle.select(13)
+			turtle.place()
+			turtle.turnRight()
+			turtle.back()
+			turtle.place()
+			turtle.turnRight()
+			turtle.back()
+			turtle.select(11)
+			turtle.place()
+			turtle.turnRight()
+			turtle.forward()
+			turtle.turnRight()
+			turtle.select(16)
+			turtle.place()
+			turtle.turnLeft()
+		end
+
+		local function moveAroundCorner(first, second)
+			for i = 1, first do
+				turtle.forward()
+			end
+			turtle.turnLeft()
+			for i = 1, second do
+				turtle.forward()
+			end
+		end
+
+		for i = 1, 4 do
+			turtle.back()
+		end
+		turtle.turnRight()
+		--first quadrant
+		moveAroundCorner(7, 5)
+		placePerimeterCluster()
+		--second quadrant
+		moveAroundCorner(6, 6)
+		placePerimeterCluster()
+		--third quadrant
+		moveAroundCorner(5, 6)
+		placePerimeterCluster()
+		--final quadrant
+		moveAroundCorner(5, 5)
+		placePerimeterCluster()
+	end
+	do
+		--place network cables around perimeter
+
+		local function stepBackAndPlaceUp(count)
+			for i = 1, count do
+				turtle.back()
+				turtle.placeUp()
+			end
+		end
+
+		for i = 1, 5 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		turtle.down()
+		turtle.down()
+		for i = 1, 6 do
+			turtle.forward()
+		end
+		placeModemUp()
+		stepBackAndPlaceUp(5)
+		turtle.turnRight()
+		stepBackAndPlaceUp(5)
+		turtle.back()
+		placeModemUp()
+		stepBackAndPlaceUp(3)
+		turtle.back()
+		do
+			--place networking cable and modem for sorting computer
+			turtle.up()
+			turtle.back()
+			turtle.place()
+			turtle.select(12)
+			turtle.placeDown()
+			turtle.select(13)
+			turtle.placeDown()
+			turtle.turnRight()
+			turtle.back()
+			turtle.place()
+			turtle.down()
+			turtle.placeUp()
+		end
+		stepBackAndPlaceUp(3)
+		turtle.back()
+		placeModemUp()
+		stepBackAndPlaceUp(6)
+		turtle.turnRight()
+		stepBackAndPlaceUp(4)
+		turtle.back()
+		placeModemUp()
+		stepBackAndPlaceUp(1)
+	end
+	do
+		--place network cables between three computers
+		turtle.forward()
+		turtle.turnRight()
+		for i = 1, 4 do
+			turtle.back()
+		end
+		placeModemUp()
+		stepBackAndPlace(2)
+		placeModemUp()
+		turtle.turnRight()
+		turtle.back()
+		turtle.place()
+		turtle.down()
+		turtle.place()
+		stepBackAndPlace(4)
+		turtle.turnLeft()
+		stepBackAndPlace(3)
+		turtle.turnRight()
+		turtle.turnRight()
+		turtle.select(12)
+		turtle.place()
+		turtle.select(13)
+		turtle.place()
+		turtle.turnRight()
+		stepBackAndPlace(1)
+	end
+	do
+		--place bottom floor surface
+		turtle.down()
+		turtle.forward()
+		turtle.forward()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.forward()
+		placeBrick()
+		for i = 1, 14 do
+			stepBackAndPlace(12, true)
+			if i % 2 == 0 and i < 14 then
+				turtle.turnLeft()
+				turtle.back()
+				placeBrick()
+				turtle.turnLeft()
+				turtle.back()
+				placeBrick()
+			elseif i < 14 then
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+			else
+				turtle.back()
+				placeBrick()
+			end
+		end
+	end
+	do
+		--place bottom outer wall
+		turtle.up()
+		turtle.up()
+		turtle.forward()
+		turtle.turnRight()
+		turtle.back()
+		for i = 1, 4 do
+			for j = 1, 12 do
+				placeBrickUp()
+				placeBrickDown()
+				turtle.back()
+				placeBrick()
+			end
+			if i < 4 then
+				placeBrickUp()
+				placeBrickDown()
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+			else
+				placeBrickUp()
+				placeBrickDown()
+				turtle.back()
+				placeBrick()
+			end
+		end
+	end
+	do
+		--place input/output ledge blocks
+
+		local function placeLedge()
+			placeBrickUp()
+			turtle.forward()
+			turtle.forward()
+			placeBrickUp()
+		end
+
+		local function moveAroundCorner(first, second)
+			for i = 1, first do
+				turtle.forward()
+			end
+			turtle.turnRight()
+			for i = 1, second do
+				turtle.forward()
+			end
+		end
+
+		turtle.turnLeft()
+		for i = 1, 6 do
+			turtle.forward()
+		end
+		placeLedge()
+		moveAroundCorner(6, 6)
+		placeLedge()
+		moveAroundCorner(7, 6)
+		placeLedge()
+		moveAroundCorner(7, 7)
+		placeLedge()
+	end
+	do
+		--place torches
+		turtle.forward()
+		turtle.up()
+		turtle.up()
+		turtle.turnRight()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.forward()
+		turtle.down()
+		turtle.down()
+		turtle.select(15)
+		turtle.placeDown()
+		turtle.turnRight()
+		for i = 1, 3 do
+			for j = 1, 9 do
+				turtle.forward()
+			end
+			turtle.placeDown()
+			turtle.turnRight()
+		end
+		for i = 1, 4 do
+			turtle.forward()
+		end
+		turtle.turnRight()
+		for i = 1, 4 do
+			turtle.forward()
+		end
+		turtle.down()
+		turtle.place()
+	end
+	do
+		--place upper platform
+		turtle.up()
+		turtle.up()
+		placeBrick()
+		turtle.turnLeft()
+		turtle.back()
+		stepBackAndPlace(3, true)
+		turtle.turnRight()
+		turtle.back()
+		turtle.turnLeft()
+		turtle.back()
+		turtle.turnRight()
+		stepBackAndPlace(4, true)
+		turtle.turnRight()
+		turtle.back()
+		placeBrick()
+		--making access stairs
+		turtle.back()
+		turtle.down()
+		placeBrick()
+		placeBrickDown()
+		turtle.up()
+		turtle.turnLeft()
+		turtle.turnLeft()
+		turtle.forward()
+		turtle.forward()
+		placeBrick()
+		turtle.back()
+		placeBrick()
+		--finished odd corner out, moving to main platform.
+		turtle.back()
+		turtle.back()
+		turtle.turnLeft()
+		turtle.back()
+		turtle.turnLeft()
+		turtle.back()
+		placeBrick()
+		for i = 1, 4 do
+			stepBackAndPlace(8, true)
+			if i %2 == 0 and i < 4 then
+				turtle.turnLeft()
+				turtle.back()
+				placeBrick()
+				turtle.turnLeft()
+				turtle.back()
+				placeBrick()
+			elseif i < 4 then
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+			else
+				turtle.turnLeft()
+			end
+		end
+		--fill in next to computer, weird rows before we get back to full size ones.
+		stepBackAndPlace(2, true)
+		turtle.turnLeft()
+		stepBackAndPlace(2, true)
+		turtle.turnRight()
+		turtle.back()
+		placeBrick()
+		turtle.turnRight()
+		placeBrick()
+		stepBackAndPlace(2, true)
+		turtle.turnLeft()
+		--manuever to do other set of full size rows
+		stepBackAndPlace(3, true)
+		turtle.turnLeft()
+		stepBackAndPlace(2, true)
+		for i = 1, 3 do
+			stepBackAndPlace(7, true)
+			if i %2 == 0 and i < 3 then
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+				turtle.turnRight()
+				turtle.back()
+				placeBrick()
+			elseif i < 3 then
+				turtle.turnLeft()
+				turtle.back()
+				placeBrick()
+				turtle.turnLeft()
+				turtle.back()
+				placeBrick()
+			else
+				turtle.turnLeft()
+			end
+		end
+		--do final fill of second oddball section, then done.
+		stepBackAndPlace(3, true)
+		turtle.turnRight()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		placeBrick()
+		turtle.turnRight()
+		stepBackAndPlace(2, true)
+		turtle.turnLeft()
+		placeBrick()
+		turtle.back()
+		placeBrick()
+		stepBackAndPlace(2, true)
+		turtle.turnLeft()
+		stepBackAndPlace(2, true)
+		turtle.turnLeft()
+		placeBrick()
+		turtle.back()
+		placeBrick()
+		turtle.turnLeft()
+		turtle.back()
+		placeBrick()
+		turtle.up()
+		placeBrickDown()
+	end
+	do
+		--place torches on upper platform
+		turtle.up()
+		turtle.turnLeft()
+		for i = 1, 3 do
+			turtle.forward()
+		end
+		turtle.select(15)
+		turtle.placeDown()
+		for i = 1, 4 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		for i = 1, 4 do
+			turtle.forward()
+		end
+		turtle.placeDown()
+		for i = 1, 3 do
+			turtle.turnLeft()
+			for j = 1, 9 do
+				turtle.forward()
+			end
+			turtle.placeDown()
+		end
+	end
+	do
+		--place upper outer wall
+
+		local function placeWall(length)
+			for i = 1, length do
+				placeBrickDown()
+				turtle.back()
+				placeBrick()
+			end
+		end
+
+		local function placePortWall()
+			turtle.back()
+			placeBrickDown()
+			turtle.back()
+			placeBrick()
+			placeBrickDown()
+			turtle.back()
+		end
+
+		turtle.forward()
+		turtle.forward()
+		turtle.turnRight()
+		turtle.forward()
+		placeWall(5)
+		placePortWall()
+		placeWall(4)
+		turtle.turnLeft()
+		placeWall(6)
+		placePortWall()
+		placeWall(4)
+		turtle.turnLeft()
+		placeWall(5)
+		placePortWall()
+		placeWall(5)
+		turtle.turnLeft()
+		placeWall(5)
+		placePortWall()
+		placeWall(6)
+	end
+end
