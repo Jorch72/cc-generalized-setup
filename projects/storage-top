@@ -60,8 +60,8 @@ requirements = {
 		},
 		[9] = {
 			name = "Stone Bricks",
-			minCount = 43,
-			maxCount = 43,
+			minCount = 45,
+			maxCount = 45,
 			exactCount = false,
 			readyFunction = nil,
 		},
@@ -130,18 +130,21 @@ instructions = function()
 	local brickCount = 0
 	local function placeBrick()
 		turtle.select(math.floor(brickCount / 64) + 1)
-		turtle.place()
-		brickCount = brickCount + 1
+		if turtle.place() then
+			brickCount = brickCount + 1
+		end
 	end
 	local function placeBrickUp()
 		turtle.select(math.floor(brickCount / 64) + 1)
-		turtle.placeUp()
-		brickCount = brickCount + 1
+		if turtle.placeUp() then
+			brickCount = brickCount + 1
+		end
 	end
 	local function placeBrickDown()
 		turtle.select(math.floor(brickCount / 64) + 1)
-		turtle.placeDown()
-		brickCount = brickCount + 1
+		if turtle.placeDown() then
+			brickCount = brickCount + 1
+		end
 	end
 
 	local function stepBackAndPlace(count, brick)
@@ -558,8 +561,6 @@ instructions = function()
 		turtle.turnRight()
 		stepBackAndPlace(2, true)
 		turtle.turnLeft()
-		placeBrick()
-		turtle.back()
 		placeBrick()
 		stepBackAndPlace(2, true)
 		turtle.turnLeft()
