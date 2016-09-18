@@ -326,7 +326,7 @@ end
 		end
 		moveTo(startLoc, loc)
 		term.setCursorPos(1, 1)
-		printCenter("Cluster Setup Complete")
+		print("Cluster Setup Complete")
 		term.setCursorPos(1, 2)
 	end
 
