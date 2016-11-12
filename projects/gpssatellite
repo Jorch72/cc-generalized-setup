@@ -213,8 +213,8 @@ end
 			handle:close()
 		end
 		if not fs.exists("disk/nsh") and fs.exists("nsh") then fs.copy("nsh", "disk/nsh") end
-		if not fs.exists("disk/get") and fs.exists("get") then fs.copy("nsh", "disk/get") end
-		if not fs.exists("disk/put") and fs.exists("put") then fs.copy("nsh", "disk/put") end
+		if not fs.exists("disk/get") and fs.exists("get") then fs.copy("get", "disk/get") end
+		if not fs.exists("disk/put") and fs.exists("put") then fs.copy("put", "disk/put") end
 	end
 
 	local function moveTo (moveLoc, loc)
