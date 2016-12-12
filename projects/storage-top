@@ -60,8 +60,8 @@ requirements = {
 		},
 		[9] = {
 			name = "Stone Bricks",
-			minCount = 45,
-			maxCount = 45,
+			minCount = 46,
+			maxCount = 46,
 			exactCount = false,
 			readyFunction = nil,
 		},
@@ -81,22 +81,22 @@ requirements = {
 		},
 		[12] = {
 			name = "Wired Modems",
-			minCount = 12,
-			maxCount = 12,
+			minCount = 9,
+			maxCount = 9,
 			exactCount = false,
 			readyFunction = nil,
 		},
 		[13] = {
 			name = "Network Cable",
-			minCount = 58,
-			maxCount = 58,
+			minCount = 50,
+			maxCount = 50,
 			exactCount = false,
 			readyFunction = nil,
 		},
 		[14] = {
 			name = "Computer",
-			minCount = 3,
-			maxCount = 3,
+			minCount = 1,
+			maxCount = 1,
 			exactCount = false,
 			readyFunction = nil,
 		},
@@ -115,7 +115,7 @@ requirements = {
 			readyFunction = nil,
 		},
 	},
-	fuel = 714,
+	fuel = 722,
 }
 
 instructions = function()
@@ -159,40 +159,23 @@ instructions = function()
 	end
 
 	do
-		--place sort computer
-		turtle.up()
-		turtle.forward()
-		turtle.forward()
-		turtle.turnRight()
-		turtle.forward()
-		turtle.select(14)
-		turtle.place()
-	end
-	do
 		--place master computer
-		for i = 1, 3 do
+		for i = 1, 4 do
 			turtle.up()
 		end
-		for i = 1, 6 do
+		for i = 1, 7 do
 			turtle.forward()
 		end
-		turtle.turnLeft()
-		for i = 1, 6 do
+		turtle.turnRight()
+		for i = 1, 7 do
 			turtle.forward()
 		end
-		turtle.select(14)
-		turtle.place()
-	end
-	do
-		--place storage computer and its adjacent peripherals
-		turtle.back()
-		turtle.turnLeft()
 		turtle.select(10)
 		turtle.place()
-		turtle.turnRight()
-		turtle.turnRight()
-		turtle.place()
 		turtle.turnLeft()
+		turtle.turnLeft()
+		turtle.place()
+		turtle.turnRight()
 		turtle.back()
 		turtle.select(14)
 		turtle.place()
@@ -279,24 +262,9 @@ instructions = function()
 		stepBackAndPlaceUp(5)
 		turtle.back()
 		placeModemUp()
-		stepBackAndPlaceUp(3)
-		turtle.back()
-		do
-			--place networking cable and modem for sorting computer
-			turtle.up()
-			turtle.back()
-			turtle.place()
-			turtle.select(12)
-			turtle.placeDown()
-			turtle.select(13)
-			turtle.placeDown()
-			turtle.turnRight()
-			turtle.back()
-			turtle.place()
-			turtle.down()
-			turtle.placeUp()
-		end
-		stepBackAndPlaceUp(3)
+		stepBackAndPlaceUp(5)
+		turtle.turnRight()
+		stepBackAndPlaceUp(4)
 		turtle.back()
 		placeModemUp()
 		stepBackAndPlaceUp(6)
@@ -310,37 +278,27 @@ instructions = function()
 		--place network cables between three computers
 		turtle.forward()
 		turtle.turnRight()
-		for i = 1, 4 do
+		for i = 1, 6 do
 			turtle.back()
 		end
 		placeModemUp()
-		stepBackAndPlace(2)
-		placeModemUp()
-		turtle.turnRight()
-		turtle.back()
-		turtle.place()
-		turtle.down()
-		turtle.place()
-		stepBackAndPlace(4)
 		turtle.turnLeft()
-		stepBackAndPlace(3)
-		turtle.turnRight()
-		turtle.turnRight()
-		turtle.select(12)
-		turtle.place()
-		turtle.select(13)
-		turtle.place()
+		stepBackAndPlace(6)
 		turtle.turnRight()
 		stepBackAndPlace(1)
 	end
 	do
 		--place bottom floor surface
-		turtle.down()
-		turtle.forward()
-		turtle.forward()
 		turtle.turnLeft()
-		turtle.forward()
-		turtle.forward()
+		turtle.down()
+		turtle.down()
+		for i = 1, 12 do
+			turtle.forward()
+		end
+		turtle.turnLeft()
+		for i = 1, 4 do
+			turtle.forward()
+		end
 		placeBrick()
 		for i = 1, 14 do
 			stepBackAndPlace(12, true)
@@ -519,13 +477,12 @@ instructions = function()
 		--fill in next to computer, weird rows before we get back to full size ones.
 		stepBackAndPlace(2, true)
 		turtle.turnLeft()
-		stepBackAndPlace(2, true)
+		stepBackAndPlace(3, true)
 		turtle.turnRight()
 		turtle.back()
 		placeBrick()
 		turtle.turnRight()
-		placeBrick()
-		stepBackAndPlace(2, true)
+		stepBackAndPlace(3, true)
 		turtle.turnLeft()
 		--manuever to do other set of full size rows
 		stepBackAndPlace(3, true)
@@ -579,12 +536,12 @@ instructions = function()
 		--place torches on upper platform
 		turtle.up()
 		turtle.turnLeft()
-		for i = 1, 3 do
+		for i = 1, 4 do
 			turtle.forward()
 		end
 		turtle.select(15)
 		turtle.placeDown()
-		for i = 1, 4 do
+		for i = 1, 3 do
 			turtle.forward()
 		end
 		turtle.turnLeft()
