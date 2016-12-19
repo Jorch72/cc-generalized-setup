@@ -48,7 +48,7 @@ local handle = io.open("/startup", "w")
 handle:write([[shell.run("inventory")]])
 handle:close()
 shell.run("pastebin run 4zyreNZy")
---shell.run("packman auto install lyqyd/base-inv-inventory")]=]
+shell.run("packman auto install lyqyd/inv-inventory")]=]
 
 	local function fillObjectData(obj)
 		if obj.class == "item" then
