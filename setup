@@ -151,7 +151,7 @@ local function isFuelSufficient()
 		if project and project.requirements.other and type(project.requirements.other) == "function" then
 			otherRequirements = project.requirements.other()
 		end
-		return turtle.getFuelLevel() >= fuelCost and otherRequirements
+		return (turtle.getFuelLevel() == "unlimited" or turtle.getFuelLevel() >= fuelCost) and otherRequirements
 	else
 		return false
 	end
