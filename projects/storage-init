@@ -1,0 +1,376 @@
+name = "Storage System Setup"
+
+requirements = {
+	slots = {
+		[1] = {
+			name = "Storage Blocks",
+			minCount = 64,
+			maxCount = 64,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[2] = {
+			name = "Storage Blocks",
+			minCount = 8,
+			maxCount = 8,
+			exactCount = false,
+			readyFunction = nil,
+		},
+		[3] = {
+			name = "Disk Drive",
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[4] = {
+			name = "Blank Floppy Disk",
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+		[5] = {
+			name = "Modem",
+			minCount = 1,
+			maxCount = 1,
+			exactCount = true,
+			readyFunction = nil,
+		},
+	},
+	fuel = 10,
+}
+
+instructions = function()
+	local diskStartup = [=[if turtle then return end
+fs.copy("disk/storagedata", "/storagedata")
+local handle = io.open("/startup", "w")
+handle:write([[shell.run("inventory")]])
+handle:close()
+shell.run("pastebin run 4zyreNZy")
+--shell.run("packman auto install lyqyd/base-inv-inventory")]=]
+
+	local function fillObjectData(obj)
+		if obj.class == "item" then
+			if not obj.hash then
+				if obj.name and obj.damage then
+					if obj.damage > 0 then
+						obj.hash = obj.name.."-"..obj.damage
+					else
+						obj.hash = obj.name
+					end
+				end
+			end
+			if not obj.name then
+				if obj.hash then
+					local name, damage = string.match(obj.hash, "(.-)%-(%d+)$")
+					if name and damage then
+						obj.name, obj.damage = name, damage
+					else
+						obj.name, obj.damage = obj.hash, 0
+					end
+				end
+			end
+			return obj
+		else
+			return false
+		end
+	end
+
+	local itemMap = {}
+	local chestCount = 0
+
+	local function placeChest()
+		turtle.select(math.floor(chestCount / 64) + 1)
+		if turtle.place() then
+			chestCount = chestCount + 1
+		end
+	end
+
+	local function placeChestDown()
+		turtle.select(math.floor(chestCount / 64) + 1)
+		if turtle.placeDown() then
+			chestCount = chestCount + 1
+		end
+	end
+
+	local function dropItems()
+		local atChest = 1
+
+		local function moveToChest(chest)
+			if chest ~= atChest then
+				if chest < atChest then
+					turtle.turnLeft()
+				else
+					turtle.turnRight()
+				end
+				for i = 1, math.abs(chest - atChest) do
+					turtle.forward()
+				end
+				if chest < atChest then
+					turtle.turnRight()
+				else
+					turtle.turnLeft()
+				end
+			end
+			atChest = chest
+		end
+
+		local function moveAndDrop(chest, count)
+			moveToChest(chest)
+			if chest % 2 == 0 then turtle.down() end
+			turtle.drop(count)
+			if chest % 2 == 0 then turtle.up() end
+		end
+
+		for i = 4, 16 do
+			turtle.select(i)
+			local detail = turtle.getItemDetail(i)
+			if detail then
+				local object = fillObjectData({class = "item", name = detail.name, damage = detail.damage, count = detail.count})
+				local total = 0
+				for cNum, slots in ipairs(itemMap) do
+					for sNum, slot in ipairs(slots) do
+						local dropCount = 0
+						if slot.name == object.hash or slot.name == "empty" then
+							dropCount = math.min(64 - slot.count, object.count - total)
+							if dropCount > 0 then
+								slot.name = object.hash
+								slot.count = slot.count + dropCount
+								total = total + dropCount
+								moveAndDrop(cNum, dropCount)
+							end
+						end
+						if total == object.count then break end
+					end
+					if total == object.count then break end
+				end
+				if total < object.count then
+					table.insert(itemMap, {{name = object.hash, count = object.count}})
+					local newChest = itemMap[#itemMap]
+					for j = 2, 27 do
+						newChest[j] = {name = "empty", count = 0}
+					end
+					moveAndDrop(#itemMap, object.count)
+				end
+			end
+		end
+		moveToChest(1)
+		turtle.select(4)
+	end
+
+	do
+		--place disk drive and disk, rearrange slots, move down and break first floor hole
+		local comp
+		repeat
+			turtle.turnLeft()
+			comp = peripheral.wrap("front")
+		until comp
+		comp.shutdown()
+		turtle.up()
+		turtle.select(3)
+		turtle.place()
+		turtle.select(4)
+		turtle.drop()
+		turtle.select(5)
+		turtle.transferTo(3)
+		turtle.select(4)
+		--moving to floor hole
+		turtle.turnRight()
+		turtle.forward()
+		for i = 1, 4 do
+			turtle.down()
+		end
+		turtle.digDown()
+		do
+			--dig out the other access hole
+			turtle.up()
+			turtle.back()
+			turtle.back()
+			turtle.down()
+			turtle.digDown()
+			turtle.up()
+			turtle.forward()
+			turtle.forward()
+			turtle.down()
+		end
+	end
+	do
+		--dig out initial area for chests.
+		local function moveAndDig()
+			turtle.dig()
+			turtle.forward()
+			turtle.digUp()
+			turtle.digDown()
+		end
+		for i = 1, 3 do
+			turtle.down()
+			turtle.digDown()
+		end
+		for i = 1, 4 do
+			moveAndDig()
+		end
+		turtle.turnRight()
+		for i = 1, 5 do
+			moveAndDig()
+		end
+		turtle.turnRight()
+
+		for i = 1, 11 do
+			moveAndDig()
+		end
+		turtle.turnRight()
+		moveAndDig()
+		turtle.turnRight()
+		for i = 1, 10 do
+			moveAndDig()
+		end
+
+		--place first row of chests, so we can store the things we're digging.
+		turtle.turnRight()
+		turtle.forward()
+		turtle.turnLeft()
+		do
+			--place row of chests.
+			for i = 1, 5 do
+				placeChest()
+				placeChestDown()
+				turtle.back()
+				turtle.back()
+			end
+			placeChest()
+			placeChestDown()
+		end
+		turtle.turnLeft()
+		turtle.forward()
+
+		--continue mining, dropping off after every two rows.
+		for i = 1, 6 do
+			for j = 1, 10 do
+				moveAndDig()
+			end
+			turtle.turnRight()
+			moveAndDig()
+			turtle.turnRight()
+			for j = 1, 9 do
+				moveAndDig()
+			end
+			turtle.forward()
+			local dist = (6 - i) * 2
+			turtle.turnLeft()
+			if dist > 0 then
+				for j = 1, dist do
+					turtle.forward()
+				end
+			end
+			turtle.turnRight()
+			dropItems()
+			if i < 6 then
+				turtle.turnRight()
+				for j = 1, dist - 1 do
+					turtle.forward()
+				end
+				turtle.turnRight()
+			end
+		end
+	end
+	do
+		--place all remaining rows of chests.
+		turtle.back()
+		turtle.turnLeft()
+		turtle.back()
+
+		for i = 1, 3 do
+			for j = 1, 5 do
+				placeChest()
+				placeChestDown()
+				turtle.back()
+				turtle.back()
+			end
+			placeChest()
+			placeChestDown()
+			turtle.turnRight()
+			turtle.back()
+			if i < 3 then
+				turtle.back()
+				turtle.turnRight()
+				for j = 1, 5 do
+					placeChestDown()
+					turtle.back()
+					turtle.back()
+					placeChest()
+				end
+				placeChestDown()
+				turtle.back()
+				turtle.turnLeft()
+				turtle.back()
+				placeChest()
+				turtle.back()
+				turtle.turnLeft()
+				turtle.back()
+			end
+		end
+	end
+	do
+		--exit and move back to starting position
+		turtle.turnLeft()
+		turtle.down()
+		for i = 1, 5 do
+			turtle.forward()
+		end
+		turtle. turnRight()
+		for i = 1, 6 do
+			turtle.forward()
+		end
+		for i = 1, 7 do
+			turtle.up()
+		end
+		turtle.turnLeft()
+		turtle.forward()
+	end
+	do
+		--write storagedata file and startup file to copy data to computer
+		turtle.turnLeft()
+		turtle.up()
+		do
+			--write storage data file
+			local fileHandle = io.open("disk/storagedata", "w")
+			for i = 1, 2 do
+				for j = 1, 6 do
+					for k = 1, 6 do
+						fileHandle:write(tostring(i)..","..tostring(j)..","..tostring(k)..";minecraft:chest \n")
+					end
+				end
+			end
+			for i, slots in ipairs(itemMap) do
+				local layer = ((i + 1) % 2) + 1
+				local column = math.ceil(i / 2)
+				local line = tostring(layer)..",1,"..tostring(column)..";minecraft:chest "
+				for j, info in ipairs(slots) do
+					line = line..info.name..","..info.count..";"
+				end
+				fileHandle:write(line.."\n")
+			end
+			fileHandle:close()
+		end
+		do
+			--write startup file
+			local fileHandle = io.open("disk/startup", "w")
+			fileHandle:write(diskStartup)
+			fileHandle:close()
+		end
+		do
+			turtle.down()
+			peripheral.call("front", "turnOn")
+			sleep(5)
+			turtle.up()
+			turtle.suck()
+			turtle.dig()
+			turtle.select(3)
+			turtle.place()
+			turtle.down()
+			peripheral.call("front", "reboot")
+			turtle.turnRight()
+		end
+	end
+end
